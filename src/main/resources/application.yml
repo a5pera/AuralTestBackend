@@ -5,15 +5,9 @@ server:
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-<<<<<<< HEAD
     url: jdbc:mysql://192.168.10.137:3306/aural-test?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai
     username: root
     password: 123456
-=======
-    url: jdbc:mysql://${MYSQL_ADDRESS}/${MYSQL_DATABASE:aural_test}
-    username: ${MYSQL_USERNAME}
-    password: ${MYSQL_PASSWORD}
->>>>>>> bcc133b49ef2d0a0178ecb2b81e5dba803dc1ef3
   mvc:
     view:
       suffix: .html
