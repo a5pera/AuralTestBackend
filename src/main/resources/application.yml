@@ -5,7 +5,7 @@ server:
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://${MYSQL_ADDRESS}/${MYSQL_DATABASE:aural_test}
+    url: jdbc:mysql://${MYSQL_ADDRESS}/${MYSQL_DATABASE:arual_test}
     username: ${MYSQL_USERNAME}
     password: ${MYSQL_PASSWORD}
   mvc:
