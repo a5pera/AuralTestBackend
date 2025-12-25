@@ -4,7 +4,7 @@ import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-@SpringBootApplication
+@SpringBootApplication(scanBasePackages = {"com.tencent.wxcloudrun"})
 @MapperScan(basePackages = {"com.tencent.wxcloudrun.dao"})
 public class WxCloudRunApplication {  
 
