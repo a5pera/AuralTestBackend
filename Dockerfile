@@ -16,7 +16,7 @@ COPY settings.xml pom.xml /app/
 RUN mvn -s /app/settings.xml -f /app/pom.xml clean package
 
 # 选择运行时基础镜像
-FROM alpine:3.13
+FROM eclipse-temurin:17-jre-alpine
 
 # 安装依赖包，如需其他依赖包，请到alpine依赖包管理(https://pkgs.alpinelinux.org/packages?name=php8*imagick*&branch=v3.13)查找。
 # 选用国内镜像源以提高下载速度
