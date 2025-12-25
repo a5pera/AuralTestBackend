@@ -1,11 +1,15 @@
 package com.tencent.wxcloudrun.service.impl;
 
+import com.tencent.wxcloudrun.config.ApiException;
+import com.tencent.wxcloudrun.config.BizException;
 import com.tencent.wxcloudrun.dao.StudentMapper;
 import com.tencent.wxcloudrun.dao.StudentSessionMapper;
 import com.tencent.wxcloudrun.dao.StudentMapper;
 import com.tencent.wxcloudrun.dao.StudentSessionMapper;
+import com.tencent.wxcloudrun.dao.StudentRosterMapper;
 import com.tencent.wxcloudrun.dto.auth.AuthData;
 import com.tencent.wxcloudrun.model.auth.Student;
+import com.tencent.wxcloudrun.model.auth.StudentRoster;
 import com.tencent.wxcloudrun.service.AuthService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,20 +26,24 @@ public class AuthServiceImpl implements AuthService {
 
     private final StudentMapper studentMapper;
     private final StudentSessionMapper sessionMapper;
+    private final StudentRosterMapper studentRosterMapper;
 
-    public AuthServiceImpl(StudentMapper studentMapper, StudentSessionMapper sessionMapper) {
+    public AuthServiceImpl(StudentMapper studentMapper, StudentSessionMapper sessionMapper, StudentRosterMapper studentRosterMapper) {
         this.studentMapper = studentMapper;
         this.sessionMapper = sessionMapper;
+        this.studentRosterMapper = studentRosterMapper;
     }
 
     @Override
     public AuthData loginByOpenid(String openid, HttpServletRequest request) {
         Student s = studentMapper.findByOpenid(openid);
-        if (s == null) {
-            // 前端据此跳转到绑定页
-            throw new RuntimeException("NOT_BOUND");
+
+        // 已存在 student：直接登录，若不存在，返回给前端让前端跳转到绑定信息界面
+        if (s != null) {
+            return issueSession(s.getId());
+        } else {
+            throw BizException.deny();
         }
-        return issueSession(s.getId());
     }
 
     @Override
