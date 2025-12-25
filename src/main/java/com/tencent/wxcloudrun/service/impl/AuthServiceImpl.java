@@ -1,6 +1,7 @@
 package com.tencent.wxcloudrun.service.impl;
 
 import com.tencent.wxcloudrun.config.ApiException;
+import com.tencent.wxcloudrun.config.ApiResponse;
 import com.tencent.wxcloudrun.config.BizException;
 import com.tencent.wxcloudrun.dao.StudentMapper;
 import com.tencent.wxcloudrun.dao.StudentSessionMapper;
@@ -41,9 +42,8 @@ public class AuthServiceImpl implements AuthService {
         // 已存在 student：直接登录，若不存在，返回给前端让前端跳转到绑定信息界面
         if (s != null) {
             return issueSession(s.getId());
-        } else {
-            throw BizException.deny();
         }
+        throw BizException.deny();
     }
 
     @Override
