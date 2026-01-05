@@ -13,5 +13,9 @@ spring:
       suffix: .html
       prefix: /
 
+jwt:
+  secret: "AURAL_TEST_BACKEND_SECRET_CODE_32_CHARS_MIN_12345"
+  ttlSeconds: 604800   # 7天
+
 mybatis:
   mapper-locations: classpath*:mapper/*Mapper.xml

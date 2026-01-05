@@ -1,0 +1,22 @@
+{
+  "groups": [
+    {
+      "name": "jwt",
+      "type": "com.tencent.wxcloudrun.config.JwtProperties",
+      "sourceType": "com.tencent.wxcloudrun.config.JwtProperties"
+    }
+  ],
+  "properties": [
+    {
+      "name": "jwt.secret",
+      "type": "java.lang.String",
+      "sourceType": "com.tencent.wxcloudrun.config.JwtProperties"
+    },
+    {
+      "name": "jwt.ttl-seconds",
+      "type": "java.lang.Long",
+      "sourceType": "com.tencent.wxcloudrun.config.JwtProperties"
+    }
+  ],
+  "hints": []
+}

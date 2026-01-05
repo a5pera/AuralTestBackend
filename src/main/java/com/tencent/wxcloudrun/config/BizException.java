@@ -19,4 +19,12 @@ public class BizException extends RuntimeException {
     public static BizException deny() {
         return new BizException("DENY");
     }
+
+    public static BizException missingParams() {
+        return new BizException("MISSING_PARAMS");
+    }
+
+    public static BizException alreadyBound() {
+        return new BizException("ALREADY_BOUND");
+    }
 }
