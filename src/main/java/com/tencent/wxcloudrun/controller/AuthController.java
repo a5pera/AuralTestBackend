@@ -1,8 +1,15 @@
 package com.tencent.wxcloudrun.controller;
 
 import com.tencent.wxcloudrun.config.ApiResponse;
+import com.tencent.wxcloudrun.dao.StudentMapper;
+import com.tencent.wxcloudrun.dto.auth.AuthData;
 import com.tencent.wxcloudrun.dto.auth.BindRequest;
+import com.tencent.wxcloudrun.model.auth.Student;
+import com.tencent.wxcloudrun.security.JwtUtil;
 import com.tencent.wxcloudrun.service.AuthService;
+import io.jsonwebtoken.Claims;
+import org.springframework.boot.autoconfigure.neo4j.Neo4jProperties;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
@@ -12,9 +19,11 @@ import javax.servlet.http.HttpServletRequest;
 public class AuthController {
 
     private final AuthService authService;
+    private final StudentMapper studentMapper;
 
-    public AuthController(AuthService authService) {
+    public AuthController(AuthService authService, StudentMapper studentMapper) {
         this.authService = authService;
+        this.studentMapper = studentMapper;
     }
 
     @PostMapping("/login")
@@ -39,5 +48,13 @@ public class AuthController {
                 req.getCollege(),
                 request
         ));
+    }
+
+    @GetMapping("/me")
+    public ApiResponse me(Authentication authentication) {
+        Long studentId = (Long) authentication.getPrincipal();
+        Student s = studentMapper.findByStudentNo(String.valueOf(studentId));
+
+        return ApiResponse.ok(s);
     }
 }
