@@ -27,4 +27,8 @@ public class BizException extends RuntimeException {
     public static BizException alreadyBound() {
         return new BizException("ALREADY_BOUND");
     }
+
+    public static BizException notAllowed() {
+        return new BizException("NOT_ALLOWED");
+    }
 }

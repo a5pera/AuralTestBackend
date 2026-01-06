@@ -5,6 +5,7 @@ import com.tencent.wxcloudrun.dao.*;
 import com.tencent.wxcloudrun.dao.StudentMapper;
 import com.tencent.wxcloudrun.dto.auth.AuthData;
 import com.tencent.wxcloudrun.model.auth.Student;
+import com.tencent.wxcloudrun.model.auth.StudentRoster;
 import com.tencent.wxcloudrun.security.JwtUtil;
 import com.tencent.wxcloudrun.service.AuthService;
 import org.springframework.stereotype.Service;
@@ -53,23 +54,24 @@ public class AuthServiceImpl implements AuthService {
         }
 
         Student byNo = studentMapper.findByStudentNo(studentNo.trim());
-        if (byNo != null) {
+        StudentRoster studentRoster = studentRosterMapper.findMatch(studentNo.trim(), name.trim(), college.trim());
+        if (byNo != null) {  // student表中查找到了学号，之前登陆过，已经记录在student表中
             // 学号已绑定且不是自己 -> 不允许解绑/换绑
             if (byNo.getWechatOpenid() != null && !byNo.getWechatOpenid().equals(openid)) {
                 throw BizException.alreadyBound();
             }
-            // 绑定同一个 openid：发 token
-            if (byNo.getWechatOpenid() == null) {
-                studentMapper.bindOpenid(byNo.getId(), openid);
-            }
             return issueSession(byNo.getId(), request);
+        }
+
+        if(studentRoster == null) {  // 先查找白名单，白名单中存在则可以登录，不存在直接返回“NOT_ALLOWED”
+            throw BizException.notAllowed();
         }
 
         // 新建 student（你可以改成从 roster 导入 name/college）
         Student s = new Student();
         s.setStudentNo(studentNo.trim());
-        s.setName(name.trim());
-        s.setCollege(college.trim());
+        s.setName(studentRoster.getName().trim());
+        s.setCollege(studentRoster.getCollege().trim());
         s.setWechatOpenid(openid);
         s.setTheta(5.0);
         studentMapper.insert(s);
