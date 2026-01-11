@@ -4,19 +4,25 @@ import com.tencent.wxcloudrun.config.BizException;
 import com.tencent.wxcloudrun.dao.*;
 import com.tencent.wxcloudrun.dao.StudentMapper;
 import com.tencent.wxcloudrun.dto.auth.AuthData;
+import com.tencent.wxcloudrun.model.auth.AdminUser;
 import com.tencent.wxcloudrun.model.auth.Student;
 import com.tencent.wxcloudrun.model.auth.StudentRoster;
 import com.tencent.wxcloudrun.security.JwtUtil;
 import com.tencent.wxcloudrun.service.AuthService;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.servlet.http.HttpServletRequest;
+import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.Date;
 import java.util.UUID;
 
 @Service
@@ -26,13 +32,18 @@ public class AuthServiceImpl implements AuthService {
     private final SessionMapper sessionMapper;
     private final StudentRosterMapper studentRosterMapper;
     private final JwtUtil jwtUtil;
+    private final AdminUserMapper adminUserMapper;
+    private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
     public AuthServiceImpl(StudentMapper studentMapper, SessionMapper sessionMapper,
-                           StudentRosterMapper studentRosterMapper, JwtUtil jwtUtil) {
+                           StudentRosterMapper studentRosterMapper, JwtUtil jwtUtil,
+                           AdminUserMapper adminUserMapper, BCryptPasswordEncoder bCryptPasswordEncoder) {
         this.studentMapper = studentMapper;
         this.sessionMapper = sessionMapper;
         this.studentRosterMapper = studentRosterMapper;
         this.jwtUtil = jwtUtil;
+        this.adminUserMapper = adminUserMapper;
+        this.bCryptPasswordEncoder = bCryptPasswordEncoder;
     }
 
     @Override
@@ -73,10 +84,37 @@ public class AuthServiceImpl implements AuthService {
         s.setName(studentRoster.getName().trim());
         s.setCollege(studentRoster.getCollege().trim());
         s.setWechatOpenid(openid);
-        s.setTheta(5.0);
+        s.setTheta(BigDecimal.valueOf(5.0));
         studentMapper.insert(s);
 
         return issueSession(s.getId(), request);
+    }
+
+    @Override
+    public AuthData adminLogin(String username, String password) {
+        if (isBlank(username) || isBlank(password)) {
+            throw new IllegalArgumentException("MISSING_PARAMS");
+        }
+
+        AdminUser admin = adminUserMapper.findByUsername(username.trim());
+        if (admin == null) throw new IllegalArgumentException("BAD_CREDENTIALS");
+        if (Boolean.FALSE.equals(admin.getIsActive())) throw new IllegalArgumentException("ADMIN_DISABLED");
+
+        if (!bCryptPasswordEncoder.matches(password, admin.getPasswordHash())) {
+            throw new IllegalArgumentException("BAD_CREDENTIALS");
+        }
+
+        LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(30); // 管理员建议短一点
+        Instant expInstant = expiresAt.atZone(ZoneId.systemDefault()).toInstant();
+        String jti = UUID.randomUUID().toString();
+
+        String ph = sha256Hex(admin.getPasswordHash());
+        String token = jwtUtil.issueAdminToken(admin.getId(), ph, expInstant, jti);
+
+        AuthData out = new AuthData();
+        out.setToken(token);
+        out.setExpiresAt(expiresAt);
+        return out;
     }
 
     private AuthData issueSession(Long studentId, HttpServletRequest req) {
@@ -84,7 +122,7 @@ public class AuthServiceImpl implements AuthService {
         Instant expInstant = expiresAt.atZone(ZoneId.systemDefault()).toInstant();
 
         String jti = UUID.randomUUID().toString();
-        String token = jwtUtil.issueToken(studentId, expInstant, jti);
+        String token = jwtUtil.issueToken(studentId, "STUDENT", expInstant, jti);
 
         String tokenHash = sha256Hex(token);
 

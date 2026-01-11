@@ -2,6 +2,7 @@ package com.tencent.wxcloudrun.controller;
 
 import com.tencent.wxcloudrun.config.ApiResponse;
 import com.tencent.wxcloudrun.dao.StudentMapper;
+import com.tencent.wxcloudrun.dto.auth.AdminLoginRequest;
 import com.tencent.wxcloudrun.dto.auth.AuthData;
 import com.tencent.wxcloudrun.dto.auth.BindRequest;
 import com.tencent.wxcloudrun.model.auth.Student;
@@ -24,6 +25,16 @@ public class AuthController {
     public AuthController(AuthService authService, StudentMapper studentMapper) {
         this.authService = authService;
         this.studentMapper = studentMapper;
+    }
+
+    @PostMapping("/adminLogin")
+    public ApiResponse adminLogin(@RequestBody AdminLoginRequest req) {
+        try {
+            return ApiResponse.ok(authService.adminLogin(req.getUsername(), req.getPassword()));
+        } catch (IllegalArgumentException e) {
+            // 你现在 adminLogin 里抛的是 IllegalArgumentException("BAD_CREDENTIALS" / ...)
+            return ApiResponse.error(e.getMessage());
+        }
     }
 
     @PostMapping("/login")

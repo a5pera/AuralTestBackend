@@ -1,9 +1,12 @@
 package com.tencent.wxcloudrun.security;
 
+import com.tencent.wxcloudrun.dao.AdminUserMapper;
 import com.tencent.wxcloudrun.dao.SessionMapper;
+import com.tencent.wxcloudrun.model.auth.AdminUser;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -15,15 +18,18 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.Collections;
+import java.util.List;
 
 public class JwtAuthFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
     private final SessionMapper sessionMapper;
+    private final AdminUserMapper adminUserMapper;
 
-    public JwtAuthFilter(JwtUtil jwtUtil, SessionMapper sessionMapper) {
+    public JwtAuthFilter(JwtUtil jwtUtil, SessionMapper sessionMapper, AdminUserMapper adminUserMapper) {
         this.jwtUtil = jwtUtil;
         this.sessionMapper = sessionMapper;
+        this.adminUserMapper = adminUserMapper;
     }
 
     @Override
@@ -48,27 +54,50 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         String token = auth.substring("Bearer ".length()).trim();
 
         try {
-            // 1) JWT 验签 + exp 校验（失败会抛 JwtException）
             Claims claims = jwtUtil.parse(token);
+            String sub = claims.getSubject(); // "ADMIN:12" 或 "123"
+            String role = claims.get("role", String.class);
 
-            long studentId = Long.parseLong(claims.getSubject());
+            if (sub != null && sub.startsWith("ADMIN:")) {
+                // ---------- 管理员：不走 session ----------
+                long adminId = Long.parseLong(sub.substring("ADMIN:".length()));
+                AdminUser admin = adminUserMapper.findById(adminId);
+                if (admin == null || Boolean.FALSE.equals(admin.getIsActive())) {
+                    write401(resp, "ADMIN_DISABLED");
+                    return;
+                }
 
-            // 2) 单端登录校验：对比 token_hash
+                String phInToken = claims.get("ph", String.class);
+                String phNow = sha256Hex(admin.getPasswordHash());
+                if (phInToken == null || !phNow.equals(phInToken)) {
+                    write401(resp, "ADMIN_TOKEN_REVOKED"); // 密码改了/旧 token 作废
+                    return;
+                }
+
+                var authorities = List.of(new SimpleGrantedAuthority("ROLE_ADMIN"));
+                var authentication = new UsernamePasswordAuthenticationToken("ADMIN:" + adminId, null, authorities);
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+
+                chain.doFilter(req, resp);
+                return;
+            }
+
+            // ---------- 学生：保持你原来的 session(token_hash) 校验 ----------
+            long studentId = Long.parseLong(sub);
+
             String dbHash = sessionMapper.getTokenHash(studentId);
             if (dbHash == null || !dbHash.equals(sha256Hex(token))) {
                 write401(resp, "SESSION_INVALID");
                 return;
             }
-
-            // 3) 更新 last_seen_at（可选，建议加）
             sessionMapper.touch(studentId);
 
-            // 4) 写入 SecurityContext（后续接口可拿到 studentId）
-            UsernamePasswordAuthenticationToken authentication =
-                    new UsernamePasswordAuthenticationToken(studentId, null, Collections.emptyList());
+            var authorities = List.of(new SimpleGrantedAuthority("ROLE_STUDENT"));
+            var authentication = new UsernamePasswordAuthenticationToken(studentId, null, authorities);
             SecurityContextHolder.getContext().setAuthentication(authentication);
 
             chain.doFilter(req, resp);
+
         } catch (JwtException | IllegalArgumentException e) {
             write401(resp, "TOKEN_INVALID");
         }
@@ -77,7 +106,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     private static void write401(HttpServletResponse resp, String code) throws IOException {
         resp.setStatus(401);
         resp.setContentType("application/json;charset=utf-8");
-        resp.getWriter().write("{\"code\":\"" + code + "\"}");
+        resp.getWriter().write("{\"code\":401,\"errorMsg\":\"UNAUTHORIZED\",\"data\":{}}");
     }
 
     private static String sha256Hex(String s) {

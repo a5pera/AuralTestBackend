@@ -17,10 +17,23 @@ public class JwtUtil {
         this.key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
     }
 
-    public String issueToken(long studentId, Instant expiresAt, String jti) {
+    public String issueToken(long userId, String role, Instant expiresAt, String jti) {
         return Jwts.builder()
-                .setSubject(String.valueOf(studentId))
+                .claim("uid", userId)
+                .claim("role", role)
                 .setId(jti) // 可选：JWT ID
+                .setIssuedAt(Date.from(Instant.now()))
+                .setExpiration(Date.from(expiresAt))
+                .signWith(key, SignatureAlgorithm.HS256)
+                .compact();
+    }
+
+    public String issueAdminToken(long adminId, String passHashFinger, Instant expiresAt, String jti) {
+        return Jwts.builder()
+                .setSubject("ADMIN:" + adminId)
+                .claim("role", "ADMIN")
+                .claim("ph", passHashFinger)
+                .setId(jti)
                 .setIssuedAt(Date.from(Instant.now()))
                 .setExpiration(Date.from(expiresAt))
                 .signWith(key, SignatureAlgorithm.HS256)
