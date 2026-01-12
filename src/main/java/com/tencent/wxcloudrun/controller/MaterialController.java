@@ -10,19 +10,23 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.Map;
 
 @RestController
 @RequestMapping("api/material")
 public class MaterialController {
-//    private final MaterialService materialService;
-//
-//    public MaterialController(MaterialService materialService) {
-//        this.materialService = materialService;
-//    }
-//    @PostMapping("/uploadMaterial")
-//    public ApiResponse uploadMaterial(@RequestBody UploadMaterialRequest req,
-//                                      HttpServletRequest request) {
-//        // 调 service：事务创建 material + questions + options
-//        return ApiResponse.ok(materialService.createMaterialWithQuestions(req, request));
-//    }
+    private MaterialService materialService;
+    public MaterialController(MaterialService materialService) {
+        this.materialService = materialService;
+    }
+
+    @PostMapping("/upload")
+    public ApiResponse upload(@RequestBody UploadMaterialRequest req) {
+        try {
+            Map<String, Object> out = materialService.createMaterialWithQuestions(req);
+            return ApiResponse.ok(out);
+        } catch (IllegalArgumentException e) {
+            return ApiResponse.error(e.getMessage());
+        }
+    }
 }

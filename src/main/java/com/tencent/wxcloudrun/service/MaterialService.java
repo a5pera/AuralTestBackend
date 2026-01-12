@@ -2,8 +2,10 @@ package com.tencent.wxcloudrun.service;
 
 import com.tencent.wxcloudrun.dto.quest.MaterialDetailDTO;
 import com.tencent.wxcloudrun.dto.quest.MaterialItemDTO;
+import com.tencent.wxcloudrun.dto.quest.UploadMaterialRequest;
 
 import java.util.List;
+import java.util.Map;
 
 public interface MaterialService {
 
@@ -24,4 +26,7 @@ public interface MaterialService {
 
     // 软删除（管理员用：is_active=0）
     void delete(long materialId);
+
+    // 插入材料
+    Map<String, Object> createMaterialWithQuestions(UploadMaterialRequest req);
 }

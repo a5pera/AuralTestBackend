@@ -3,6 +3,7 @@ package com.tencent.wxcloudrun.controller;
 import com.tencent.wxcloudrun.config.ApiResponse;
 import com.tencent.wxcloudrun.dto.auth.AdminLoginRequest;
 import com.tencent.wxcloudrun.service.AuthService;
+import com.tencent.wxcloudrun.service.MaterialService;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -12,9 +13,11 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/admin")
 public class AdminController {
     private final AuthService authService;
+    private final MaterialService materialService;
 
-    public AdminController(AuthService authService) {
+    public AdminController(AuthService authService, MaterialService materialService) {
         this.authService = authService;
+        this.materialService = materialService;
     }
 
     @PostMapping("/create")
@@ -26,4 +29,6 @@ public class AdminController {
             return ApiResponse.error(e.getMessage());
         }
     }
+
+
 }
