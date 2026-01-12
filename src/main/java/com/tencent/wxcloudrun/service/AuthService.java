@@ -10,4 +10,6 @@ public interface AuthService {
     AuthData bindAndLogin(String openid, String studentNo, String name, String college, HttpServletRequest request);
 
     AuthData adminLogin(String username, String password);
+
+    long createAdmin(String username, String rawPassword);
 }

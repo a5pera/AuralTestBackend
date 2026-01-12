@@ -117,6 +117,25 @@ public class AuthServiceImpl implements AuthService {
         return out;
     }
 
+    public long createAdmin(String username, String rawPassword) {
+        if (isBlank(username) || isBlank(rawPassword)) {
+            throw new IllegalArgumentException("MISSING_PARAMS");
+        }
+
+        String u = username.trim();
+        if (adminUserMapper.findByUsername(u) != null) {
+            throw new IllegalArgumentException("USERNAME_TAKEN");
+        }
+
+        AdminUser admin = new AdminUser();
+        admin.setUsername(u);
+        admin.setPasswordHash(bCryptPasswordEncoder.encode(rawPassword));
+        admin.setIsActive(true);
+
+        adminUserMapper.insert(admin);
+        return admin.getId();
+    }
+
     private AuthData issueSession(Long studentId, HttpServletRequest req) {
         LocalDateTime expiresAt = LocalDateTime.now().plusDays(7);
         Instant expInstant = expiresAt.atZone(ZoneId.systemDefault()).toInstant();

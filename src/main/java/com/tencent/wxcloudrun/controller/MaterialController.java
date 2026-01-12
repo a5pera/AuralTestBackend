@@ -23,6 +23,6 @@ public class MaterialController {
 //    public ApiResponse uploadMaterial(@RequestBody UploadMaterialRequest req,
 //                                      HttpServletRequest request) {
 //        // 调 service：事务创建 material + questions + options
-//        return ApiResponse.ok(materialAdminService.createMaterialWithQuestions(req, request));
+//        return ApiResponse.ok(materialService.createMaterialWithQuestions(req, request));
 //    }
 }
