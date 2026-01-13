@@ -98,8 +98,18 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
             chain.doFilter(req, resp);
 
-        } catch (JwtException | IllegalArgumentException e) {
+        } catch (io.jsonwebtoken.ExpiredJwtException e) {
+            write401(resp, "TOKEN_EXPIRED");
+        } catch (io.jsonwebtoken.security.SignatureException e) {
+            write401(resp, "TOKEN_BAD_SIGNATURE");
+        } catch (io.jsonwebtoken.MalformedJwtException e) {
+            write401(resp, "TOKEN_MALFORMED");
+        } catch (NumberFormatException e) { // 关键：sub 不是纯数字时会进这里
+            write401(resp, "SUBJECT_NOT_NUMBER");
+        } catch (io.jsonwebtoken.JwtException e) {
             write401(resp, "TOKEN_INVALID");
+        } catch (IllegalArgumentException e) {
+            write401(resp, "BAD_REQUEST");
         }
     }
 
