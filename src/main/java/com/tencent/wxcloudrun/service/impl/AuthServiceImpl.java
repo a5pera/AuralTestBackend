@@ -105,7 +105,7 @@ public class AuthServiceImpl implements AuthService {
             throw new IllegalArgumentException("BAD_CREDENTIALS");
         }
 
-        LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(30); // 管理员建议短一点
+        LocalDateTime expiresAt = LocalDateTime.now().plusDays(30); // 管理员建议短一点
         Instant expInstant = expiresAt.atZone(ZoneId.systemDefault()).toInstant();
         String jti = UUID.randomUUID().toString();
 
@@ -138,7 +138,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     private AuthData issueSession(Long studentId, HttpServletRequest req) {
-        LocalDateTime expiresAt = LocalDateTime.now().plusDays(7);
+        LocalDateTime expiresAt = LocalDateTime.now().plusDays(30);
         Instant expInstant = expiresAt.atZone(ZoneId.systemDefault()).toInstant();
 
         String jti = UUID.randomUUID().toString();

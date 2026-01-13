@@ -19,6 +19,7 @@ public class JwtUtil {
 
     public String issueToken(long userId, String role, Instant expiresAt, String jti) {
         return Jwts.builder()
+                .setSubject(String.valueOf(userId))
                 .claim("uid", userId)
                 .claim("role", role)
                 .setId(jti) // 可选：JWT ID
