@@ -80,6 +80,7 @@ public class AuthServiceImpl implements AuthService {
 
         // 新建 student（你可以改成从 roster 导入 name/college）
         Student s = new Student();
+        s.setRosterId(studentRoster.getId());
         s.setStudentNo(studentNo.trim());
         s.setName(studentRoster.getName().trim());
         s.setCollege(studentRoster.getCollege().trim());
