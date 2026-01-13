@@ -75,9 +75,9 @@ public class MaterialServiceImpl implements MaterialService {
         }
 
         // 1) 外键校验：audio_id 必须存在（materials.audio_id -> audio_assets.id RESTRICT）
-        if (!audioAssetMapper.existsById(req.getAudioId())) {
-            throw new IllegalArgumentException("AUDIO_NOT_FOUND");
-        }
+//        if (!audioAssetMapper.existsById(req.getAudioId())) {
+//            throw new IllegalArgumentException("AUDIO_NOT_FOUND");
+//        }
 
         // 2) 如果未传 level：可用题目 difficulty 均值作为缓存字段（文档建议 level 缓存题目均值）
         BigDecimal level = req.getLevel();

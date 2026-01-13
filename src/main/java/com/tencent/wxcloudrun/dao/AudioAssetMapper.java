@@ -75,8 +75,4 @@ public interface AudioAssetMapper {
     // ✅ 外键校验常用：materials.audio_id -> audio_assets.id
     @Select("SELECT 1 FROM audio_assets WHERE id = #{id} LIMIT 1")
     Integer exists(@Param("id") long id);
-
-    default boolean existsById(Long id) {
-        return id != null && exists(id) != null;
-    }
 }
