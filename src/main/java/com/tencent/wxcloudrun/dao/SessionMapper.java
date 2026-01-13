@@ -8,16 +8,16 @@ import java.time.LocalDateTime;
 public interface SessionMapper {
 
     @Insert("""
-    INSERT INTO student_sessions(student_id, token_hash, expires_at, last_seen_at, device_info, ip)
-    VALUES(#{studentId}, #{tokenHash}, #{expiresAt}, NOW(), #{deviceInfo}, #{ip})
-    ON DUPLICATE KEY UPDATE
-      token_hash = VALUES(token_hash),
-      issued_at = NOW(),
-      expires_at = VALUES(expiresAt),
-      last_seen_at = NOW(),
-      device_info = VALUES(deviceInfo),
-      ip = VALUES(ip)
-  """)
+            INSERT INTO student_sessions(student_id, token_hash, expires_at, last_seen_at, device_info, ip)
+            VALUES(#{studentId}, #{tokenHash}, #{expiresAt}, NOW(), #{deviceInfo}, #{ip})
+            ON DUPLICATE KEY UPDATE
+              token_hash = VALUES(token_hash),
+              issued_at = NOW(),
+              expires_at = VALUES(expires_at),
+              last_seen_at = NOW(),
+              device_info = VALUES(device_info),
+              ip = VALUES(ip)
+            """)
     int upsert(@Param("studentId") long studentId,
                @Param("tokenHash") String tokenHash,
                @Param("expiresAt") LocalDateTime expiresAt,
