@@ -106,7 +106,11 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     private static void write401(HttpServletResponse resp, String code) throws IOException {
         resp.setStatus(401);
         resp.setContentType("application/json;charset=utf-8");
-        resp.getWriter().write("{\"code\":401,\"errorMsg\":\"UNAUTHORIZED\",\"data\":{}}");
+
+        String msg = code == null ? "" : code;
+        msg = msg.replace("\\", "\\\\").replace("\"", "\\\""); // 简单 JSON 转义
+
+        resp.getWriter().write("{\"code\":401,\"errorMsg\":\"" + msg + "\",\"data\":{}}");
     }
 
     private static String sha256Hex(String s) {
