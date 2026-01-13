@@ -5,6 +5,7 @@ import com.tencent.wxcloudrun.dao.QuestionMapper;
 import com.tencent.wxcloudrun.dao.QuestionOptionMapper;
 import com.tencent.wxcloudrun.dto.quest.MaterialDetailDTO;
 import com.tencent.wxcloudrun.dto.quest.MaterialItemDTO;
+import com.tencent.wxcloudrun.dto.quest.UpdateAudioIdDTO;
 import com.tencent.wxcloudrun.dto.quest.UploadMaterialRequest;
 import com.tencent.wxcloudrun.model.quest.Material;
 import com.tencent.wxcloudrun.model.quest.Question;
@@ -57,6 +58,12 @@ public class MaterialServiceImpl implements MaterialService {
     @Override
     public void delete(long materialId) {
 
+    }
+
+    @Override
+    public int updateAudioIdByMaterialId(UpdateAudioIdDTO req) {
+        if(req == null) throw new IllegalArgumentException("MISSING_BODY");
+        return materialMapper.updateAudioIdByMaterialId(req.getAudioId(), req.getMaterialId());
     }
 
     @Override

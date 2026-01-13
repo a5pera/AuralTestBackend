@@ -10,4 +10,8 @@ public interface AudioService {
      * @return 插入后的 AudioAsset（含 id）
      */
     AudioAsset registerUploadedAudio(RegisterAudioRequest req);
+
+    AudioAsset findById(long id);
+
+    void deleteById(long id);
 }

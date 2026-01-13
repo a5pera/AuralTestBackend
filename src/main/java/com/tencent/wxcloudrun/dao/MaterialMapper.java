@@ -47,6 +47,13 @@ public interface MaterialMapper {
 
     @Update("""
                 UPDATE materials
+                SET audio_id = #{audioId}
+                WHERE id = #{id}
+            """)
+    int updateAudioIdByMaterialId(@Param("audioId") long audioId, @Param("id") long id);
+
+    @Update("""
+                UPDATE materials
                 SET is_active = 0
                 WHERE id = #{id}
             """)

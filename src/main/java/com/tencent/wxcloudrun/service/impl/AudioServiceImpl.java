@@ -40,6 +40,16 @@ public class AudioServiceImpl implements AudioService {
         return audioAssetMapper.findById(a.getId());
     }
 
+    @Override
+    public AudioAsset findById(long id) {
+        return null;
+    }
+
+    @Override
+    public void deleteById(long id) {
+
+    }
+
     private static boolean isBlank(String s) {
         return s == null || s.trim().isEmpty();
     }

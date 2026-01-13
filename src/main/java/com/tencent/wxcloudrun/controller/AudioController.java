@@ -4,6 +4,7 @@ import com.tencent.wxcloudrun.config.ApiResponse;
 import com.tencent.wxcloudrun.dto.quest.RegisterAudioRequest;
 import com.tencent.wxcloudrun.model.user.AudioAsset;
 import com.tencent.wxcloudrun.service.AudioService;
+import com.tencent.wxcloudrun.service.MaterialService;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -17,6 +18,8 @@ import java.util.Map;
 public class AudioController {
     @Resource
     private AudioService audioService;
+    @Resource
+    private MaterialService materialService;
 
     @PostMapping("/register")
     public ApiResponse register(@RequestBody RegisterAudioRequest req) {
@@ -35,4 +38,6 @@ public class AudioController {
             return ApiResponse.error(e.getMessage());
         }
     }
+
+
 }

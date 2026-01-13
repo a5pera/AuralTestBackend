@@ -2,6 +2,7 @@ package com.tencent.wxcloudrun.service;
 
 import com.tencent.wxcloudrun.dto.quest.MaterialDetailDTO;
 import com.tencent.wxcloudrun.dto.quest.MaterialItemDTO;
+import com.tencent.wxcloudrun.dto.quest.UpdateAudioIdDTO;
 import com.tencent.wxcloudrun.dto.quest.UploadMaterialRequest;
 
 import java.util.List;
@@ -29,4 +30,7 @@ public interface MaterialService {
 
     // 插入材料
     Map<String, Object> createMaterialWithQuestions(UploadMaterialRequest req);
+
+    // 更新材料对应的音频
+    int updateAudioIdByMaterialId(UpdateAudioIdDTO updateAudioIdDTO);
 }
