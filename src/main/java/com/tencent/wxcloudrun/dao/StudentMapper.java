@@ -18,8 +18,8 @@ public interface StudentMapper {
     Student findByStudentNo(@Param("studentNo") String studentNo);
 
     @Insert("""
-              INSERT INTO students(student_no, name, college, wechat_openid, theta, bound_at)
-              VALUES(#{studentNo}, #{name}, #{college}, #{wechatOpenid}, #{theta}, NOW())
+              INSERT INTO students(roster_id, student_no, name, college, wechat_openid, theta, bound_at)
+              VALUES(#{rosterId}, #{studentNo}, #{name}, #{college}, #{wechatOpenid}, #{theta}, NOW())
             """)
     @Options(useGeneratedKeys = true, keyProperty = "id")
     int insert(Student s);
