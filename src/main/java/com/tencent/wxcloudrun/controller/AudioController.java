@@ -2,9 +2,11 @@ package com.tencent.wxcloudrun.controller;
 
 import com.tencent.wxcloudrun.config.ApiResponse;
 import com.tencent.wxcloudrun.dto.quest.RegisterAudioRequest;
+import com.tencent.wxcloudrun.dto.quest.UpdateAudioIdDTO;
 import com.tencent.wxcloudrun.model.user.AudioAsset;
 import com.tencent.wxcloudrun.service.AudioService;
 import com.tencent.wxcloudrun.service.MaterialService;
+import org.apache.ibatis.annotations.Update;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -39,5 +41,14 @@ public class AudioController {
         }
     }
 
+    @PostMapping("/bindMaterial")
+    public ApiResponse bind(@RequestBody UpdateAudioIdDTO req) {
+        try {
+            materialService.updateAudioIdByMaterialId(req);
+            return ApiResponse.ok("succ");
+        } catch (Exception e) {
+            return ApiResponse.error(e.getMessage());
+        }
+    }
 
 }
