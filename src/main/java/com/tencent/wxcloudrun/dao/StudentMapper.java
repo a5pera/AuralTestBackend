@@ -6,7 +6,7 @@ import org.apache.ibatis.annotations.*;
 @Mapper
 public interface StudentMapper {
     @Select("""
-            SELECT id, roster_id, student_no, name, college, wechat_openid, theta, bound_at
+            SELECT id, roster_id, student_no AS studentNo, name, college, wechat_openid AS wechatOpenid, theta, bound_at AS boundAt
             FROM students WHERE id = #{studentId}
             """
     )

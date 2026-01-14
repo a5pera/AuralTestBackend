@@ -1,6 +1,7 @@
 package com.tencent.wxcloudrun.controller;
 
 import com.tencent.wxcloudrun.config.ApiResponse;
+import com.tencent.wxcloudrun.dao.MaterialMapper;
 import com.tencent.wxcloudrun.dto.quest.MaterialDetailDTO;
 import com.tencent.wxcloudrun.dto.quest.UploadMaterialRequest;
 import com.tencent.wxcloudrun.model.quest.Material;
@@ -15,8 +16,10 @@ import java.util.Map;
 @RequestMapping("api/material")
 public class MaterialController {
     private final MaterialService materialService;
-    public MaterialController(MaterialService materialService) {
+    private final MaterialMapper materialMapper;
+    public MaterialController(MaterialService materialService, MaterialMapper materialMapper) {
         this.materialService = materialService;
+        this.materialMapper = materialMapper;
     }
 
     @PostMapping("/upload")
@@ -32,8 +35,9 @@ public class MaterialController {
     @GetMapping("/list")
     public ApiResponse list() {
         try {
-            List<MaterialDetailDTO> materialDetailDTOS = materialService.listAllMaterials();
-            return ApiResponse.ok(materialDetailDTOS);
+            List<Material> materialList = materialMapper.listAll();
+            System.out.println(materialList);
+            return ApiResponse.ok(materialList);
         } catch (IllegalArgumentException e) {
             return ApiResponse.error(e.getMessage());
         }

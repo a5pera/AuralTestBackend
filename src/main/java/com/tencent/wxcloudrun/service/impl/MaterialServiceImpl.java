@@ -36,24 +36,6 @@ public class MaterialServiceImpl implements MaterialService {
     }
 
     @Override
-    public List<MaterialDetailDTO> listAllMaterials() {
-        List<Material> materials = materialMapper.listAll();
-        List<MaterialDetailDTO> materialDetailDTOS = new ArrayList<>();
-        for (Material material : materials) {
-            MaterialDetailDTO temp = new MaterialDetailDTO();
-            temp.setId(material.getId());
-            temp.setTitle(material.getTitle());
-            temp.setLevel(material.getLevel());
-            temp.setTranscript(material.getTranscript());
-            temp.setAudioId(material.getAudioId());
-            temp.setIs_active(material.getIsActive());
-            temp.setCreatedAt(material.getCreatedAt());
-            temp.setUpdatedAt(material.getUpdatedAt());
-        }
-        return materialDetailDTOS;
-    }
-
-    @Override
     public MaterialDetailDTO getDetail(long materialId) {
         return null;
     }
