@@ -6,6 +6,13 @@ import org.apache.ibatis.annotations.*;
 @Mapper
 public interface StudentMapper {
     @Select("""
+            SELECT id, roster_id, studentNo, name, college, wechatOpenid, theta, boundAt
+            FROM students WHERE id = #{studentId}
+            """
+    )
+    Student findById(@Param("studentId") String studentId);
+
+    @Select("""
               SELECT id, student_no AS studentNo, name, college, wechat_openid AS wechatOpenid, theta
               FROM students WHERE wechat_openid = #{openid} LIMIT 1
             """)

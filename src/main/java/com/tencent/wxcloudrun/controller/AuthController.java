@@ -66,9 +66,7 @@ public class AuthController {
     @GetMapping("/me")
     public ApiResponse me(Authentication authentication) {
         Long studentId = (Long) authentication.getPrincipal();
-        Student s = studentMapper.findByStudentNo(String.valueOf(studentId));
-        System.out.println(studentId);
-        System.out.println(s);
+        Student s = studentMapper.findById(String.valueOf(studentId));
 
         return ApiResponse.ok(s);
     }
