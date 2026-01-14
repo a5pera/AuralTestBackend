@@ -29,7 +29,7 @@ public class MaterialController {
         }
     }
 
-    @GetMapping
+    @GetMapping("/list")
     public ApiResponse list() {
         try {
             List<MaterialDetailDTO> materialDetailDTOS = materialService.listAllMaterials();
