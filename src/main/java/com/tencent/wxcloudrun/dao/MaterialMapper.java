@@ -34,6 +34,15 @@ public interface MaterialMapper {
             """)
     List<Material> listActive(@Param("offset") int offset, @Param("limit") int limit);
 
+    @Select("""
+                SELECT id, title, level, transcript, audio_id AS audioId, is_active AS isActive,
+                       created_at AS createdAt, updated_at AS updatedAt
+                FROM materials
+                ORDER BY id DESC
+            """
+    )
+    List<Material> listAll();
+
     @Update("""
                 UPDATE materials
                 SET title = #{title},

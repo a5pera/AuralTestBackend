@@ -13,6 +13,8 @@ public interface MaterialService {
     // 创建（通常管理员用）
     MaterialDetailDTO create(MaterialDetailDTO req);
 
+    List<MaterialDetailDTO> listAllMaterials();
+
     // 详情（通常管理员/内部用：带 is_active/时间等）
     MaterialDetailDTO getDetail(long materialId);
 
