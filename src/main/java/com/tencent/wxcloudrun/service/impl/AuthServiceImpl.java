@@ -148,6 +148,7 @@ public class AuthServiceImpl implements AuthService {
 
         String deviceInfo = req.getHeader("User-Agent"); // 小程序云托管可能为空，允许为空
         String ip = extractIp(req); // 你可以先简化成 req.getRemoteAddr()
+        deviceInfo = fitVarchar(deviceInfo, 256);
 
         sessionMapper.upsert(studentId, tokenHash, expiresAt, deviceInfo, ip);
 
@@ -155,6 +156,14 @@ public class AuthServiceImpl implements AuthService {
         out.setToken(token);
         out.setExpiresAt(expiresAt);
         return out;
+    }
+
+    private static String fitVarchar(String s, int maxLen) {
+        if (s == null) return null;
+        s = s.trim();
+        if (s.isEmpty()) return null;
+        if (s.length() <= maxLen) return s;
+        return s.substring(0, maxLen);
     }
 
     private static String extractIp(HttpServletRequest req) {
