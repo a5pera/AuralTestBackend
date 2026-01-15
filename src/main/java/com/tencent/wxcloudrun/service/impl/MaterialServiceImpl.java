@@ -164,6 +164,8 @@ public class MaterialServiceImpl implements MaterialService {
             }
         }
         if (cnt == 0) return Optional.empty();
+        System.out.println("cnt=" + cnt);
+        System.out.println("sum=" + sum);
         return Optional.of(sum.divide(BigDecimal.valueOf(cnt), 2, RoundingMode.HALF_UP));
     }
 
