@@ -1,16 +1,11 @@
 package com.tencent.wxcloudrun.service.impl;
 
-import com.tencent.wxcloudrun.dao.MaterialMapper;
-import com.tencent.wxcloudrun.dao.QuestionMapper;
-import com.tencent.wxcloudrun.dao.QuestionOptionMapper;
-import com.tencent.wxcloudrun.dto.quest.MaterialDetailDTO;
-import com.tencent.wxcloudrun.dto.quest.MaterialItemDTO;
-import com.tencent.wxcloudrun.dto.quest.UpdateAudioIdDTO;
-import com.tencent.wxcloudrun.dto.quest.UploadMaterialRequest;
+import com.tencent.wxcloudrun.dao.*;
+import com.tencent.wxcloudrun.dto.quest.*;
+import com.tencent.wxcloudrun.model.auth.Student;
 import com.tencent.wxcloudrun.model.quest.Material;
 import com.tencent.wxcloudrun.model.quest.Question;
 import com.tencent.wxcloudrun.model.quest.QuestionOption;
-import com.tencent.wxcloudrun.dao.AudioAssetMapper;
 import com.tencent.wxcloudrun.service.MaterialService;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
@@ -24,11 +19,16 @@ import java.util.*;
 @Service
 public class MaterialServiceImpl implements MaterialService {
 
-    @Resource private MaterialMapper materialMapper;
-    @Resource private QuestionMapper questionMapper;
-    @Resource private QuestionOptionMapper questionOptionMapper;
+    @Resource
+    private MaterialMapper materialMapper;
+    @Resource
+    private QuestionMapper questionMapper;
+    @Resource
+    private QuestionOptionMapper questionOptionMapper;
     @Resource
     private AudioAssetMapper audioAssetMapper;
+    @Resource
+    private StudentMapper studentMapper;
 
     @Override
     public MaterialDetailDTO create(MaterialDetailDTO req) {
@@ -55,6 +55,61 @@ public class MaterialServiceImpl implements MaterialService {
         return null;
     }
 
+    // 这里的level是学生的level
+    public MaterialDetailDTO getAMaterial(long studentId) {
+        // if (level == null) throw new IllegalArgumentException("LEVEL_MISSING");
+
+        List<MaterialIdAndLevel> candidates = materialMapper.listIdAndLevel(studentId);
+        Student s = studentMapper.findById(String.valueOf(studentId));
+        BigDecimal level = s.getTheta();
+        Random r = new Random();
+        if (candidates == null || candidates.isEmpty()) {
+            throw new IllegalArgumentException("NO_MATERIAL");
+        }
+
+        // 1) 采样 d_target ~ TruncNormal(mu=level, sigma), truncated to [mu-1, mu+1]
+        double mu = level.doubleValue();
+        double min = mu - 1.0;
+        double max = mu + 1.0;
+
+        // sigma 选小一点，保证大部分样本都落在 ±1 内，拒绝采样几乎不会循环多次
+        double sigma = 0.4; // 经验值：±1 约等于 ±2.5σ，接受率很高
+        double dTarget = sampleTruncatedNormal(mu, sigma, min, max);
+
+        // 2) 找 level 最接近 dTarget 的 material
+        MaterialIdAndLevel best = null;
+        double bestDiff = Double.POSITIVE_INFINITY;
+
+        for (MaterialIdAndLevel it : candidates) {
+            if (it == null || it.getMaterialId() == null || it.getLevel() == null) continue;
+            double diff = Math.abs(it.getLevel().doubleValue() - dTarget);
+            if (diff < bestDiff) {
+                bestDiff = diff;
+                best = it;
+            } else if (diff == bestDiff && best != null) {
+                // 可选：差值一样时用 id 小的（或随机）
+                // 随机选择
+                if (r.nextInt(10) < 5) best = it;
+                // if (it.getMaterialId() < best.getMaterialId()) best = it;
+            }
+        }
+
+        if (best == null) throw new IllegalArgumentException("NO_VALID_MATERIAL");
+
+        // 3) 查详情并返回（你说的 mapper.findById）
+        Material m = materialMapper.findById(best.getMaterialId());
+        if (m == null) throw new IllegalArgumentException("MATERIAL_NOT_FOUND");
+
+        // TODO: 你自己的 MaterialDetailDTO 组装方式（示例）
+        MaterialDetailDTO res = new MaterialDetailDTO();
+        res.setId(m.getId());
+        res.setLevel(m.getLevel());
+        res.setTitle(m.getTitle());
+        res.setAudioId(m.getAudioId());
+        res.setTranscript(m.getTranscript());
+        return res;
+    }
+
     @Override
     public void delete(long materialId) {
 
@@ -62,7 +117,7 @@ public class MaterialServiceImpl implements MaterialService {
 
     @Override
     public int updateAudioIdByMaterialId(UpdateAudioIdDTO req) {
-        if(req == null) throw new IllegalArgumentException("MISSING_BODY");
+        if (req == null) throw new IllegalArgumentException("MISSING_BODY");
         return materialMapper.updateAudioIdByMaterialId(req.getAudioId(), req.getMaterialId());
     }
 
@@ -152,6 +207,34 @@ public class MaterialServiceImpl implements MaterialService {
     }
 
     // ---------------- helpers ----------------
+
+    private static double sampleTruncatedNormal(double mu, double sigma, double min, double max) {
+        // 拒绝采样：直到落入区间
+        // Random.nextGaussian() 就是 N(0,1)
+        var rnd = java.util.concurrent.ThreadLocalRandom.current();
+        double x;
+        int guard = 0;
+        do {
+            x = mu + sigma * rnd.nextGaussian();
+            guard++;
+            // 极端情况下防死循环：直接 clamp
+            if (guard > 50) {
+                if (x < min) return min;
+                if (x > max) return max;
+                return x;
+            }
+        } while (x < min || x > max);
+        return x;
+    }
+
+    // 示例：你按自己 DTO 字段填
+//    private MaterialDetailDTO toDetailDTO(Material m, double dTarget, double diff) {
+//        MaterialDetailDTO dto = new MaterialDetailDTO();
+//        dto.setMaterial(m);
+//        dto.setDTarget(new BigDecimal(String.format(java.util.Locale.ROOT, "%.2f", dTarget)));
+//        dto.setDiff(new BigDecimal(String.format(java.util.Locale.ROOT, "%.2f", diff)));
+//        return dto;
+//    }
 
     private static Optional<BigDecimal> computeLevelFromQuestions(List<UploadMaterialRequest.QuestionCreateDTO> qs) {
         if (qs == null || qs.isEmpty()) return Optional.empty();

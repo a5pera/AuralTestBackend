@@ -1,5 +1,6 @@
 package com.tencent.wxcloudrun.dao;
 
+import com.tencent.wxcloudrun.dto.quest.MaterialIdAndLevel;
 import com.tencent.wxcloudrun.model.quest.Material;
 import org.apache.ibatis.annotations.*;
 
@@ -42,6 +43,20 @@ public interface MaterialMapper {
             """
     )
     List<Material> listAll();
+
+    @Select("""
+                SELECT m.id AS materialId, m.level
+                FROM materials m
+                WHERE m.is_active = 1
+                  AND NOT EXISTS (
+                    SELECT 1
+                    FROM attempts a
+                    WHERE a.student_id = #{studentId}
+                      AND a.material_id = m.id
+                  )
+                ORDER BY m.level DESC
+            """)
+    List<MaterialIdAndLevel> listIdAndLevel(@Param("studentId") Long studentId);
 
     @Update("""
                 UPDATE materials

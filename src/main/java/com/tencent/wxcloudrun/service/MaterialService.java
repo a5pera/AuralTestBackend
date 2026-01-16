@@ -5,6 +5,7 @@ import com.tencent.wxcloudrun.dto.quest.MaterialItemDTO;
 import com.tencent.wxcloudrun.dto.quest.UpdateAudioIdDTO;
 import com.tencent.wxcloudrun.dto.quest.UploadMaterialRequest;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 
@@ -24,6 +25,9 @@ public interface MaterialService {
 
     // 更新（管理员用）
     MaterialDetailDTO update(long materialId, MaterialDetailDTO req);
+
+    // 给学生推送一条合适难度的练习
+    MaterialDetailDTO getAMaterial(long studentId);
 
     // 软删除（管理员用：is_active=0）
     void delete(long materialId);

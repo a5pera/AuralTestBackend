@@ -4,8 +4,10 @@ import com.tencent.wxcloudrun.config.ApiResponse;
 import com.tencent.wxcloudrun.dao.MaterialMapper;
 import com.tencent.wxcloudrun.dto.quest.MaterialDetailDTO;
 import com.tencent.wxcloudrun.dto.quest.UploadMaterialRequest;
+import com.tencent.wxcloudrun.model.auth.Student;
 import com.tencent.wxcloudrun.model.quest.Material;
 import com.tencent.wxcloudrun.service.MaterialService;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
@@ -36,9 +38,20 @@ public class MaterialController {
     public ApiResponse list() {
         try {
             List<Material> materialList = materialMapper.listAll();
-            System.out.println(materialList);
+            // System.out.println(materialList);
             return ApiResponse.ok(materialList);
         } catch (IllegalArgumentException e) {
+            return ApiResponse.error(e.getMessage());
+        }
+    }
+
+    @GetMapping("/get-a-material")
+    public ApiResponse getAMaterial(Authentication authentication) {
+        try {
+            Long studentId = (Long) authentication.getPrincipal();
+            MaterialDetailDTO m = materialService.getAMaterial(studentId);
+            return ApiResponse.ok(m);
+        } catch (Exception e) {
             return ApiResponse.error(e.getMessage());
         }
     }

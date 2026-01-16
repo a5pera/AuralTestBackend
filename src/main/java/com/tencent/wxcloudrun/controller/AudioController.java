@@ -44,8 +44,8 @@ public class AudioController {
     @PostMapping("/bindMaterial")
     public ApiResponse bind(@RequestBody UpdateAudioIdDTO req) {
         try {
-            materialService.updateAudioIdByMaterialId(req);
-            return ApiResponse.ok("succ");
+            int res = materialService.updateAudioIdByMaterialId(req);
+            return ApiResponse.ok(res);
         } catch (Exception e) {
             return ApiResponse.error(e.getMessage());
         }
