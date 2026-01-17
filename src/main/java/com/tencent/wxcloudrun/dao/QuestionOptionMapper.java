@@ -15,6 +15,8 @@ public interface QuestionOptionMapper {
     @Options(useGeneratedKeys = true, keyProperty = "id")
     int insert(QuestionOption opt);
 
+
+    // 根据问题的id列出其所属的选项
     @Select("""
                 SELECT id,
                        question_id AS questionId,

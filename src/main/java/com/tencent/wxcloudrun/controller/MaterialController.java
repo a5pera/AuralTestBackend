@@ -2,6 +2,7 @@ package com.tencent.wxcloudrun.controller;
 
 import com.tencent.wxcloudrun.config.ApiResponse;
 import com.tencent.wxcloudrun.dao.MaterialMapper;
+import com.tencent.wxcloudrun.dto.quest.GetPracticeRequest;
 import com.tencent.wxcloudrun.dto.quest.MaterialDetailDTO;
 import com.tencent.wxcloudrun.dto.quest.UploadMaterialRequest;
 import com.tencent.wxcloudrun.model.auth.Student;
@@ -45,13 +46,23 @@ public class MaterialController {
         }
     }
 
-    @GetMapping("/get-a-material")
+    @GetMapping("/get-practice")
     public ApiResponse getAMaterial(Authentication authentication) {
         try {
             Long studentId = (Long) authentication.getPrincipal();
-            MaterialDetailDTO m = materialService.getAMaterial(studentId);
+            GetPracticeRequest m = materialService.getAMaterial(studentId);
             return ApiResponse.ok(m);
         } catch (Exception e) {
+            return ApiResponse.error(e.getMessage());
+        }
+    }
+
+    @DeleteMapping("/{id}")
+    public ApiResponse softDelete(@PathVariable("id") Long id) {
+        try {
+            materialService.softDelete(id);
+            return ApiResponse.ok(Map.of("materialId", id, "deleted", true));
+        } catch (IllegalArgumentException e) {
             return ApiResponse.error(e.getMessage());
         }
     }

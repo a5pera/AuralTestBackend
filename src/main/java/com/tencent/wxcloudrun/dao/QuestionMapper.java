@@ -29,6 +29,7 @@ public interface QuestionMapper {
             """)
     Question findById(@Param("id") long id);
 
+    // 根据材料列出其所属的问题
     @Select("""
                 SELECT id,
                        material_id AS materialId,

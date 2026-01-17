@@ -56,7 +56,7 @@ public class MaterialServiceImpl implements MaterialService {
     }
 
     // 这里的level是学生的level
-    public MaterialDetailDTO getAMaterial(long studentId) {
+    public GetPracticeRequest getAMaterial(long studentId) {
         // if (level == null) throw new IllegalArgumentException("LEVEL_MISSING");
 
         List<MaterialIdAndLevel> candidates = materialMapper.listIdAndLevel(studentId);
@@ -71,6 +71,7 @@ public class MaterialServiceImpl implements MaterialService {
         double mu = level.doubleValue();
         double min = mu - 1.0;
         double max = mu + 1.0;
+        final double EPS = 1e-12;
 
         // sigma 选小一点，保证大部分样本都落在 ±1 内，拒绝采样几乎不会循环多次
         double sigma = 0.4; // 经验值：±1 约等于 ±2.5σ，接受率很高
@@ -83,10 +84,10 @@ public class MaterialServiceImpl implements MaterialService {
         for (MaterialIdAndLevel it : candidates) {
             if (it == null || it.getMaterialId() == null || it.getLevel() == null) continue;
             double diff = Math.abs(it.getLevel().doubleValue() - dTarget);
-            if (diff < bestDiff) {
+            if (diff + EPS < bestDiff) {
                 bestDiff = diff;
                 best = it;
-            } else if (diff == bestDiff && best != null) {
+            } else if (Math.abs(diff - bestDiff) <= EPS && best != null) {
                 // 可选：差值一样时用 id 小的（或随机）
                 // 随机选择
                 if (r.nextInt(10) < 5) best = it;
@@ -100,19 +101,47 @@ public class MaterialServiceImpl implements MaterialService {
         Material m = materialMapper.findById(best.getMaterialId());
         if (m == null) throw new IllegalArgumentException("MATERIAL_NOT_FOUND");
 
-        // TODO: 你自己的 MaterialDetailDTO 组装方式（示例）
-        MaterialDetailDTO res = new MaterialDetailDTO();
-        res.setId(m.getId());
-        res.setLevel(m.getLevel());
-        res.setTitle(m.getTitle());
+        GetPracticeRequest res = new GetPracticeRequest();
+        List<Question> questions = questionMapper.listByMaterialId(m.getId());
+        res.setMaterialId(m.getId());
+        res.setMaterialLevel(m.getLevel());
         res.setAudioId(m.getAudioId());
-        res.setTranscript(m.getTranscript());
+        res.setMaterialTitle(m.getTitle());
+        List<GetPracticeRequest.QuestionPracticeDTO> questionPracticeDTOList = new ArrayList<>();
+        for (Question question : questions) {
+            List<QuestionOption> questionOptions = questionOptionMapper.listByQuestionId(question.getId());
+            GetPracticeRequest.QuestionPracticeDTO questionPracticeDTO = new GetPracticeRequest.QuestionPracticeDTO();
+            questionPracticeDTO.setQOrder(question.getQOrder());
+            // questionPracticeDTO.setCorrectKey(question.getCorrectKey());
+            List<GetPracticeRequest.OptionDTO> optionDTOList = new ArrayList<>();
+            for (QuestionOption questionOption : questionOptions) {
+                GetPracticeRequest.OptionDTO optionDTO = new GetPracticeRequest.OptionDTO();
+                optionDTO.setContent(questionOption.getContent());
+                optionDTO.setOptKey(questionOption.getOptKey());
+                optionDTOList.add(optionDTO);
+            }
+            questionPracticeDTO.setOptions(optionDTOList);
+            questionPracticeDTOList.add(questionPracticeDTO);
+        }
+        res.setQuestions(questionPracticeDTOList);
         return res;
     }
 
     @Override
-    public void delete(long materialId) {
+    @Transactional
+    public void softDelete(Long materialId) {
+        if (materialId == null) throw new IllegalArgumentException("MISSING_MATERIAL_ID");
 
+        // 可选：先判断存在，给更明确的错误码
+        if (materialMapper.findById(materialId) == null) {
+            throw new IllegalArgumentException("MATERIAL_NOT_FOUND");
+        }
+
+        int affected = materialMapper.softDelete(materialId);
+        if (affected == 0) {
+            // 已经被删除（is_active=0）或并发导致没更新
+            throw new IllegalArgumentException("MATERIAL_ALREADY_INACTIVE");
+        }
     }
 
     @Override
