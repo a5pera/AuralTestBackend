@@ -57,7 +57,7 @@ public class MaterialController {
         }
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/delete/{id}")
     public ApiResponse softDelete(@PathVariable("id") Long id) {
         try {
             materialService.softDelete(id);
