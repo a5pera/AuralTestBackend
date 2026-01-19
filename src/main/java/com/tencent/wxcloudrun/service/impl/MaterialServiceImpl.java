@@ -6,6 +6,7 @@ import com.tencent.wxcloudrun.model.auth.Student;
 import com.tencent.wxcloudrun.model.quest.Material;
 import com.tencent.wxcloudrun.model.quest.Question;
 import com.tencent.wxcloudrun.model.quest.QuestionOption;
+import com.tencent.wxcloudrun.model.user.AudioAsset;
 import com.tencent.wxcloudrun.service.MaterialService;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
@@ -100,6 +101,7 @@ public class MaterialServiceImpl implements MaterialService {
         // 3) 查详情并返回（你说的 mapper.findById）
         Material m = materialMapper.findById(best.getMaterialId());
         if (m == null) throw new IllegalArgumentException("MATERIAL_NOT_FOUND");
+        AudioAsset audio = audioAssetMapper.findById(m.getAudioId());
 
         GetPracticeRequest res = new GetPracticeRequest();
         List<Question> questions = questionMapper.listByMaterialId(m.getId());
@@ -107,6 +109,8 @@ public class MaterialServiceImpl implements MaterialService {
         res.setMaterialLevel(m.getLevel());
         res.setAudioId(m.getAudioId());
         res.setMaterialTitle(m.getTitle());
+        res.setAudioPath(audio.getLocalPath());
+        res.setAudioType(audio.getMimeType());
         List<GetPracticeRequest.QuestionPracticeDTO> questionPracticeDTOList = new ArrayList<>();
         for (Question question : questions) {
             List<QuestionOption> questionOptions = questionOptionMapper.listByQuestionId(question.getId());
