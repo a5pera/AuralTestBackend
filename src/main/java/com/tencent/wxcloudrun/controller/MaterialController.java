@@ -71,7 +71,7 @@ public class MaterialController {
     @DeleteMapping("/hard-delete/{id}")
     public ApiResponse hardDelete(@PathVariable("id") Long id) {
         try {
-            int res = materialService.hardDelete(id);
+            materialService.hardDelete(id);
             return ApiResponse.ok(Map.of("materialId", id, "delete", true));
         } catch (Exception e) {
             return ApiResponse.error(e.getMessage());
