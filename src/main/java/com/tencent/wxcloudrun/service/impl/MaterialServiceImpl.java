@@ -155,6 +155,16 @@ public class MaterialServiceImpl implements MaterialService {
     }
 
     @Override
+    public int hardDelete(Long materialId) {
+        List<Question> questions = questionMapper.listByMaterialId(materialId);
+        for (Question question : questions) {
+            questionOptionMapper.deleteByQuestionId(question.getId());
+            questionMapper.deleteById(question.getId());
+        }
+        return materialMapper.deleteHard(materialId);
+    }
+
+    @Override
     @Transactional
     public Map<String, Object> createMaterialWithQuestions(UploadMaterialRequest req) {
         if (req == null) throw new IllegalArgumentException("MISSING_BODY");

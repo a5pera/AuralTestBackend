@@ -8,6 +8,7 @@ import com.tencent.wxcloudrun.dto.quest.UploadMaterialRequest;
 import com.tencent.wxcloudrun.model.auth.Student;
 import com.tencent.wxcloudrun.model.quest.Material;
 import com.tencent.wxcloudrun.service.MaterialService;
+import org.apache.ibatis.annotations.Delete;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -63,6 +64,16 @@ public class MaterialController {
             materialService.softDelete(id);
             return ApiResponse.ok(Map.of("materialId", id, "deleted", true));
         } catch (IllegalArgumentException e) {
+            return ApiResponse.error(e.getMessage());
+        }
+    }
+
+    @DeleteMapping("/hard-delete/{id}")
+    public ApiResponse hardDelete(@PathVariable("id") Long id) {
+        try {
+            int res = materialService.hardDelete(id);
+            return ApiResponse.ok(Map.of("materialId", id, "delete", true));
+        } catch (Exception e) {
             return ApiResponse.error(e.getMessage());
         }
     }

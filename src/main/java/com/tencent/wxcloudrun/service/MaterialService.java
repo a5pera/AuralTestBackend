@@ -34,4 +34,7 @@ public interface MaterialService {
 
     // 更新材料对应的音频
     int updateAudioIdByMaterialId(UpdateAudioIdDTO updateAudioIdDTO);
+
+    // 删除材料
+    int hardDelete(Long materialId);
 }
