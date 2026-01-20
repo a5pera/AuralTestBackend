@@ -21,6 +21,7 @@ public class GetPracticeRequest {
 
     @Data
     public static class QuestionPracticeDTO {
+        private Long qId;
         private Integer qOrder;
         // private String correctKey;
         private List<OptionDTO> options;

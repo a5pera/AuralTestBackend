@@ -116,6 +116,7 @@ public class MaterialServiceImpl implements MaterialService {
             List<QuestionOption> questionOptions = questionOptionMapper.listByQuestionId(question.getId());
             GetPracticeRequest.QuestionPracticeDTO questionPracticeDTO = new GetPracticeRequest.QuestionPracticeDTO();
             questionPracticeDTO.setQOrder(question.getQOrder());
+            questionPracticeDTO.setQId(question.getId());
             // questionPracticeDTO.setCorrectKey(question.getCorrectKey());
             List<GetPracticeRequest.OptionDTO> optionDTOList = new ArrayList<>();
             for (QuestionOption questionOption : questionOptions) {
