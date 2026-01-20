@@ -3,6 +3,8 @@ package com.tencent.wxcloudrun.dao;
 import com.tencent.wxcloudrun.model.auth.Student;
 import org.apache.ibatis.annotations.*;
 
+import java.math.BigDecimal;
+
 @Mapper
 public interface StudentMapper {
     @Select("""
@@ -36,4 +38,12 @@ public interface StudentMapper {
               WHERE id = #{studentId}
             """)
     int bindOpenid(@Param("studentId") Long studentId, @Param("openid") String openid);
+
+    @Update("""
+                UPDATE students
+                SET theta = #{theta}
+                WHERE id = #{studentId}
+            """)
+    int updateThetaById(@Param("studentId") Long studentId,
+                        @Param("theta") BigDecimal theta);
 }
