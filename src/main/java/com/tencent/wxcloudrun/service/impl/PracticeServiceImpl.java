@@ -153,4 +153,16 @@ public class PracticeServiceImpl implements PracticeService {
         out.setAnswers(answerOut);
         return out;
     }
+
+    @Override
+    public List<Attempt> getAttemptsByStudentId(Long studentId) {
+        if (studentId == null) throw new IllegalArgumentException("LOST_STUDENT_ID");
+        return attemptMapper.listAttemptByStudentId(studentId);
+    }
+
+    @Override
+    public List<AttemptAnswer> getDetailByAttemptId(Long attemptId) {
+        if (attemptId == null) throw new IllegalArgumentException("LOST_ATTEMPT_ID");
+        return attemptAnswerMapper.findByAttemptId(attemptId);
+    }
 }

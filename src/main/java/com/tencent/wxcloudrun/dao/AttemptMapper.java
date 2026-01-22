@@ -1,9 +1,10 @@
 package com.tencent.wxcloudrun.dao;
 
 import com.tencent.wxcloudrun.model.user.Attempt;
-import org.apache.ibatis.annotations.Insert;
-import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Options;
+import org.apache.ibatis.annotations.*;
+
+import java.util.List;
+
 @Mapper
 public interface AttemptMapper {
 
@@ -13,4 +14,18 @@ public interface AttemptMapper {
             """)
     @Options(useGeneratedKeys = true, keyProperty = "id")
     int insert(Attempt a);
+
+    @Select("""
+                SELECT id, student_id AS studentId, material_id AS materialId, total_q AS totalQ, theta_before AS thetaBefore,
+                theta_after AS thetaAfter, started_at as startedAt, submitted_at AS submittedAt
+                FROM attempt
+            """)
+    List<Attempt> listAttempt();
+
+    @Select("""
+            SELECT id, material_id AS materialId, total_q AS totalQ, theta_before AS thetaBefore,
+                theta_after AS thetaAfter, started_at as startedAt, submitted_at AS submittedAt
+            WHERE student_id={studentId}
+            """)
+    List<Attempt> listAttemptByStudentId(@Param("studentId") long studentId);
 }
