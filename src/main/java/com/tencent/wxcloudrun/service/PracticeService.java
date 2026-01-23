@@ -15,5 +15,5 @@ public interface PracticeService {
 
     List<AttemptAnswer> getDetailByAttemptId(Long  attemptId);
 
-    List<Material> recommendTop5Materials(long studentId)
+    List<Material> recommendTop5Materials(long studentId);
 }
