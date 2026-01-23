@@ -28,4 +28,12 @@ public interface AttemptMapper {
             WHERE student_id={studentId}
             """)
     List<Attempt> listAttemptByStudentId(@Param("studentId") long studentId);
+
+    @Select("""
+              SELECT COUNT(1)
+              FROM attempts
+              WHERE student_id = #{studentId} AND material_id = #{materialId}
+            """)
+    int countByStudentAndMaterial(@Param("studentId") Long studentId,
+                                  @Param("materialId") Long materialId);
 }

@@ -1,8 +1,11 @@
 package com.tencent.wxcloudrun.controller;
 
 import com.tencent.wxcloudrun.config.ApiResponse;
+import com.tencent.wxcloudrun.dao.AttemptAnswerMapper;
 import com.tencent.wxcloudrun.dto.quest.PracticeSubmitRequest;
 import com.tencent.wxcloudrun.dto.quest.PracticeSubmitResponse;
+import com.tencent.wxcloudrun.dto.quest.PracticedQuestionCountDTO;
+import com.tencent.wxcloudrun.model.quest.Material;
 import com.tencent.wxcloudrun.model.user.Attempt;
 import com.tencent.wxcloudrun.model.user.AttemptAnswer;
 import com.tencent.wxcloudrun.service.PracticeService;
@@ -17,8 +20,12 @@ import java.util.List;
 public class PracticeController {
     private final PracticeService practiceService;
 
-    public PracticeController(PracticeService practiceService) {
+    private final AttemptAnswerMapper attemptAnswerMapper;
+
+    public PracticeController(PracticeService practiceService,
+                              AttemptAnswerMapper attemptAnswerMapper) {
         this.practiceService = practiceService;
+        this.attemptAnswerMapper = attemptAnswerMapper;
     }
 
     @PostMapping("/submit")
@@ -51,5 +58,34 @@ public class PracticeController {
         } catch (Exception e) {
             return ApiResponse.error(e.getMessage());
         }
+    }
+
+    @GetMapping("/get-recommend")
+    public ApiResponse getRecommendPractice(Authentication authentication) {
+        try {
+            Long studentId = (Long) authentication.getPrincipal();
+            List<Material> materials = practiceService.recommendTop5Materials(studentId);
+            return ApiResponse.ok(materials);
+        } catch (Exception e) {
+            return ApiResponse.error(e.getMessage());
+        }
+    }
+
+    @GetMapping("/question-count")
+    public ApiResponse getQuestionCount(Authentication authentication) {
+        if (authentication == null || authentication.getPrincipal() == null) {
+            return ApiResponse.error("NO_AUTH");
+        }
+
+        Long studentId = (Long) authentication.getPrincipal();
+
+        long cnt = attemptAnswerMapper.countPracticedQuestions(studentId);
+        long uniq = attemptAnswerMapper.countUniquePracticedQuestions(studentId);
+
+        PracticedQuestionCountDTO out = new PracticedQuestionCountDTO();
+        out.setPracticedQuestionCount(cnt);
+        out.setUniqueQuestionCount(uniq);
+
+        return ApiResponse.ok(out);
     }
 }

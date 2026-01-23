@@ -1,8 +1,10 @@
 package com.tencent.wxcloudrun.service.impl;
 
 import com.tencent.wxcloudrun.dao.*;
+import com.tencent.wxcloudrun.dto.quest.MaterialIdAndLevel;
 import com.tencent.wxcloudrun.dto.quest.PracticeSubmitRequest;
 import com.tencent.wxcloudrun.dto.quest.PracticeSubmitResponse;
+import com.tencent.wxcloudrun.model.quest.Material;
 import com.tencent.wxcloudrun.model.quest.Question;
 import com.tencent.wxcloudrun.model.auth.Student;
 import com.tencent.wxcloudrun.model.user.Attempt;
@@ -27,17 +29,20 @@ public class PracticeServiceImpl implements PracticeService {
     private final StudentAbilityStateMapper abilityStateMapper;
     private final AttemptMapper attemptMapper;
     private final AttemptAnswerMapper attemptAnswerMapper;
+    private final MaterialMapper materialMapper;
 
     public PracticeServiceImpl(StudentMapper studentMapper,
                                QuestionMapper questionMapper,
                                StudentAbilityStateMapper abilityStateMapper,
                                AttemptMapper attemptMapper,
-                               AttemptAnswerMapper attemptAnswerMapper) {
+                               AttemptAnswerMapper attemptAnswerMapper,
+                               MaterialMapper materialMapper) {
         this.studentMapper = studentMapper;
         this.questionMapper = questionMapper;
         this.abilityStateMapper = abilityStateMapper;
         this.attemptMapper = attemptMapper;
         this.attemptAnswerMapper = attemptAnswerMapper;
+        this.materialMapper = materialMapper;
     }
 
     @Override
@@ -48,6 +53,9 @@ public class PracticeServiceImpl implements PracticeService {
         if (req.getMaterialId() == null) throw new IllegalArgumentException("MATERIAL_ID_MISSING");
         if (req.getAnswers() == null || req.getAnswers().isEmpty()) throw new IllegalArgumentException("ANSWERS_EMPTY");
 
+        // 0) 是否练习过该材料：练习过 -> 不影响分数
+        boolean practicedBefore = attemptMapper.countByStudentAndMaterial(studentId, req.getMaterialId()) > 0;
+
         // 1) 拉取题目
         List<Question> questions = questionMapper.listByMaterialId(req.getMaterialId());
         if (questions == null || questions.isEmpty()) throw new IllegalArgumentException("NO_QUESTIONS");
@@ -55,7 +63,7 @@ public class PracticeServiceImpl implements PracticeService {
         Map<Long, Question> qMap = new HashMap<>();
         for (Question q : questions) qMap.put(q.getId(), q);
 
-        // 2) correctByQid + 统计 + 回包 answers（先准备好）
+        // 2) correctByQid + 统计 + 回包 answers
         Map<Long, Boolean> correctByQid = new HashMap<>();
         int correctCnt = 0;
 
@@ -101,14 +109,25 @@ public class PracticeServiceImpl implements PracticeService {
         double varOld = (st.getThetaVar() == null) ? 4.0 : st.getThetaVar();
         int practiceCountOld = (st.getPracticeCount() == null) ? 0 : st.getPracticeCount();
 
-        // 5) 更新 (theta,var)
-        AbilityEstimator.UpdateResult upd =
-                AbilityEstimator.update(thetaOld, varOld, questions, correctByQid);
+        // 5) 更新 (theta,var) —— 若已练习过则不更新
+        double thetaNew;
+        double varNew;
+        int practiceCountNew;
 
-        double thetaNew = upd.thetaNew;
-        double varNew = upd.varNew;
+        if (practicedBefore) {
+            thetaNew = thetaOld;
+            varNew = varOld;
+            practiceCountNew = practiceCountOld; // 不计入能力更新次数
+        } else {
+            AbilityEstimator.UpdateResult upd =
+                    AbilityEstimator.update(thetaOld, varOld, questions, correctByQid);
 
-        // 6) 写入 attempts（先写 attempt，拿到 attemptId）
+            thetaNew = upd.thetaNew;
+            varNew = upd.varNew;
+            practiceCountNew = practiceCountOld + 1;
+        }
+
+        // 6) 写入 attempts（不管是否重复练习，都记一条；且重复练习时 before==after）
         LocalDateTime now = LocalDateTime.now();
 
         Attempt attempt = new Attempt();
@@ -130,17 +149,19 @@ public class PracticeServiceImpl implements PracticeService {
             AttemptAnswer row = new AttemptAnswer();
             row.setAttemptId(attemptId);
             row.setQuestionId(dto.getQuestionId());
-            row.setChosenKey(dto.getSelectedAnswer());  // A/B/C/D
+            row.setChosenKey(dto.getSelectedAnswer());
             row.setIsCorrect(Boolean.TRUE.equals(dto.getIsCorrect()));
             rows.add(row);
         }
         attemptAnswerMapper.batchInsert(rows);
 
-        // 8) 落库 theta 与能力状态
-        studentMapper.updateThetaById(studentId, BigDecimal.valueOf(thetaNew));
-        abilityStateMapper.updateState(studentId, varNew, practiceCountOld + 1);
+        // 8) 落库 theta 与能力状态 —— 仅首次练习才更新
+        if (!practicedBefore) {
+            studentMapper.updateThetaById(studentId, BigDecimal.valueOf(thetaNew));
+            abilityStateMapper.updateState(studentId, varNew, practiceCountNew);
+        }
 
-        // 9) 返回新 DTO
+        // 9) 返回
         PracticeSubmitResponse out = new PracticeSubmitResponse();
         out.setMaterialId(req.getMaterialId());
         out.setTotal(questions.size());
@@ -149,7 +170,7 @@ public class PracticeServiceImpl implements PracticeService {
         out.setThetaNew(thetaNew);
         out.setVarOld(varOld);
         out.setVarNew(varNew);
-        out.setPracticeCountNew(practiceCountOld + 1);
+        out.setPracticeCountNew(practiceCountNew);
         out.setAnswers(answerOut);
         return out;
     }
@@ -164,5 +185,88 @@ public class PracticeServiceImpl implements PracticeService {
     public List<AttemptAnswer> getDetailByAttemptId(Long attemptId) {
         if (attemptId == null) throw new IllegalArgumentException("LOST_ATTEMPT_ID");
         return attemptAnswerMapper.findByAttemptId(attemptId);
+    }
+
+    @Override
+    public List<Material> recommendTop5Materials(long studentId) {
+        // 1) 取学生能力 theta
+        Student stu = studentMapper.findById(String.valueOf(studentId));
+        if (stu == null) throw new IllegalArgumentException("STUDENT_NOT_FOUND");
+        double theta = (stu.getTheta() == null) ? 5.0 : stu.getTheta().doubleValue();
+
+        // 2) 取方差 var（可选：用于控制推荐“宽度”）
+        StudentAbilityState st = abilityStateMapper.findByStudentId(studentId);
+        double var = (st == null || st.getThetaVar() == null) ? 4.0 : st.getThetaVar();
+
+        // 3) 候选：未练习过 + active
+        List<MaterialIdAndLevel> cands = materialMapper.listIdAndLevel(studentId);
+        if (cands == null || cands.isEmpty()) return List.of();
+
+        // 4) 计算每个候选的匹配分并排序
+        final double beta = 1.0; // 1PL 斜率/尺度，越大越“钝”
+        // sigma 控制“围绕 theta 推荐的范围”，var 越大 -> 初期推荐更宽
+        double sigma = clamp(0.6 + 0.15 * Math.sqrt(Math.max(var, 0.0)), 0.6, 1.2);
+
+        List<Scored> scored = new ArrayList<>(cands.size());
+        for (MaterialIdAndLevel it : cands) {
+            if (it == null || it.getMaterialId() == null || it.getLevel() == null) continue;
+
+            long id = it.getMaterialId();
+            double b = it.getLevel().doubleValue();
+
+            // 做对概率 p(θ,b)
+            double p = sigmoid((theta - b) / beta);
+
+            // Fisher information: p(1-p)/beta^2，最大为 0.25/beta^2（在 p=0.5）
+            double info = (p * (1.0 - p)) / (beta * beta);
+            double infoNorm = info / (0.25 / (beta * beta)); // 归一化到 [0,1]
+
+            // 距离匹配（高斯权重），离 theta 越近越大
+            double z = (b - theta) / sigma;
+            double closeness = Math.exp(-0.5 * z * z); // (0,1]
+
+            // 综合得分：你可以调权重
+            double score = 0.7 * closeness + 0.3 * infoNorm;
+
+            scored.add(new Scored(id, score));
+        }
+
+        scored.sort((a, b) -> Double.compare(b.score, a.score));
+
+        // 5) 取 top 5
+        List<Long> topIds = scored.stream()
+                .limit(5)
+                .map(x -> x.id)
+                .toList();
+
+        // 6) 查详情并返回
+        // 推荐用批量查，避免 5 次 findById
+        List<Material> materials = materialMapper.listByIds(topIds);
+
+        // 保持输出顺序与 topIds 一致（listByIds 可能乱序）
+        Map<Long, Material> map = new HashMap<>();
+        for (Material m : materials) map.put(m.getId(), m);
+
+        List<Material> out = new ArrayList<>();
+        for (Long id : topIds) {
+            Material m = map.get(id);
+            if (m != null) out.add(m);
+        }
+        return out;
+    }
+
+    private static double sigmoid(double x) {
+        x = Math.max(-20.0, Math.min(20.0, x));
+        return 1.0 / (1.0 + Math.exp(-x));
+    }
+
+    private static double clamp(double v, double lo, double hi) {
+        return Math.max(lo, Math.min(hi, v));
+    }
+
+    private static class Scored {
+        final long id;
+        final double score;
+        Scored(long id, double score) { this.id = id; this.score = score; }
     }
 }

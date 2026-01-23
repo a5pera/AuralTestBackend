@@ -58,6 +58,19 @@ public interface MaterialMapper {
             """)
     List<MaterialIdAndLevel> listIdAndLevel(@Param("studentId") Long studentId);
 
+    @Select({
+            "<script>",
+            "SELECT id, title, level, transcript, audio_id AS audioId, is_active AS isActive,",
+            "       created_at AS createdAt, updated_at AS updatedAt",
+            "FROM materials",
+            "WHERE id IN",
+            "<foreach collection='ids' item='id' open='(' separator=',' close=')'>",
+            "  #{id}",
+            "</foreach>",
+            "</script>"
+    })
+    List<Material> listByIds(@Param("ids") List<Long> ids);
+
     @Update("""
                 UPDATE materials
                 SET title = #{title},
