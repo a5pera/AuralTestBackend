@@ -150,6 +150,12 @@ public class MaterialServiceImpl implements MaterialService {
     }
 
     @Override
+    public int activate(Long materialId) {
+        if (materialId == null) throw new IllegalArgumentException("MISSING_MATERIAL_ID");
+        return materialMapper.active(materialId);
+    }
+
+    @Override
     public int updateAudioIdByMaterialId(UpdateAudioIdDTO req) {
         if (req == null) throw new IllegalArgumentException("MISSING_BODY");
         return materialMapper.updateAudioIdByMaterialId(req.getAudioId(), req.getMaterialId());

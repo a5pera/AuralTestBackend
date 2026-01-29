@@ -29,6 +29,9 @@ public interface MaterialService {
     // 软删除（管理员用：is_active=0）
     void softDelete(Long materialId);
 
+    // 激活材料
+    int activate(Long materialId);
+
     // 插入材料
     Map<String, Object> createMaterialWithQuestions(UploadMaterialRequest req);
 

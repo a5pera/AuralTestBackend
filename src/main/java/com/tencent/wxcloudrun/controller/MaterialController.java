@@ -58,6 +58,16 @@ public class MaterialController {
         }
     }
 
+    @PostMapping("/activate/{id}")
+    public ApiResponse activateMaterial(@PathVariable("id") Long id) {
+        try {
+            int out = materialService.activate(id);
+            return ApiResponse.ok(Map.of("materialId", id, "activated", out));
+        } catch (Exception e) {
+            return ApiResponse.error(e.getMessage());
+        }
+    }
+
     @DeleteMapping("/delete/{id}")
     public ApiResponse softDelete(@PathVariable("id") Long id) {
         try {

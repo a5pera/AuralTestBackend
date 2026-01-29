@@ -96,6 +96,13 @@ public interface MaterialMapper {
             """)
     int softDelete(@Param("id") long id);
 
+    @Update("""
+                UPDATE materials
+                SET is_active = 1
+                WHERE id = #{id}
+            """)
+    int active(@Param("id") long id);
+
     @Delete("""
                 DELETE FROM materials
                 WHERE id = #{id}
