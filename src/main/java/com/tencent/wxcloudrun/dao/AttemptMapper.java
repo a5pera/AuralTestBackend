@@ -18,22 +18,22 @@ public interface AttemptMapper {
     @Select("""
                 SELECT id, student_id AS studentId, material_id AS materialId, total_q AS totalQ, theta_before AS thetaBefore,
                 theta_after AS thetaAfter, started_at as startedAt, submitted_at AS submittedAt
-                FROM attempt
+                FROM attempts
             """)
     List<Attempt> listAttempt();
 
     @Select("""
-            SELECT id, material_id AS materialId, total_q AS totalQ, theta_before AS thetaBefore,
-                theta_after AS thetaAfter, started_at as startedAt, submitted_at AS submittedAt
-            FROM attempt
-            WHERE student_id={studentId}
+                SELECT id, material_id AS materialId, total_q AS totalQ, theta_before AS thetaBefore,
+                    theta_after AS thetaAfter, started_at as startedAt, submitted_at AS submittedAt
+                FROM attempts
+                WHERE student_id={studentId}
             """)
     List<Attempt> listAttemptByStudentId(@Param("studentId") long studentId);
 
     @Select("""
-              SELECT COUNT(1)
-              FROM attempts
-              WHERE student_id = #{studentId} AND material_id = #{materialId}
+                SELECT COUNT(1)
+                FROM attempts
+                WHERE student_id = #{studentId} AND material_id = #{materialId}
             """)
     int countByStudentAndMaterial(@Param("studentId") Long studentId,
                                   @Param("materialId") Long materialId);
