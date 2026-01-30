@@ -26,7 +26,7 @@ public interface AttemptMapper {
                 SELECT id, material_id AS materialId, total_q AS totalQ, theta_before AS thetaBefore,
                     theta_after AS thetaAfter, started_at as startedAt, submitted_at AS submittedAt
                 FROM attempts
-                WHERE student_id={studentId}
+                WHERE student_id=#{studentId}
             """)
     List<Attempt> listAttemptByStudentId(@Param("studentId") long studentId);
 
