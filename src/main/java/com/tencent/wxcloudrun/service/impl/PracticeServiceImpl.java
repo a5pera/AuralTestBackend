@@ -189,6 +189,7 @@ public class PracticeServiceImpl implements PracticeService {
             item.setThetaBefore(attempt.getThetaBefore());
             item.setThetaAfter(attempt.getThetaAfter());
             item.setSubmittedAt(attempt.getSubmittedAt());
+            out.add(item);
         }
         return out;
     }

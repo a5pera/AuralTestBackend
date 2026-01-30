@@ -4,6 +4,7 @@ import com.tencent.wxcloudrun.model.auth.Student;
 import org.apache.ibatis.annotations.*;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @Mapper
 public interface StudentMapper {
@@ -25,6 +26,29 @@ public interface StudentMapper {
               FROM students WHERE student_no = #{studentNo} LIMIT 1
             """)
     Student findByStudentNo(@Param("studentNo") String studentNo);
+
+    @Select("""
+                SELECT s.id,
+                       s.roster_id      AS rosterId,
+                       s.student_no     AS studentNo,
+                       s.name,
+                       s.college,
+                       s.wechat_openid  AS wechatOpenid,
+                       s.theta,
+                       s.bound_at       AS boundAt,
+                       COALESCE(st.practice_count, 0) AS practiceCount
+                FROM students s
+                LEFT JOIN student_ability_state st ON st.student_id = s.id
+                ORDER BY s.theta DESC, s.id ASC
+                LIMIT #{limit} OFFSET #{offset}
+            """)
+    List<Student> listLeaderboard(@Param("limit") int limit, @Param("offset") int offset);
+
+    @Select("""
+                SELECT COUNT(1)
+                FROM students
+            """)
+    long countLeaderboard();
 
     @Insert("""
               INSERT INTO students(roster_id, student_no, name, college, wechat_openid, theta, bound_at)
