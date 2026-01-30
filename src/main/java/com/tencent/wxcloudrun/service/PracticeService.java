@@ -1,5 +1,6 @@
 package com.tencent.wxcloudrun.service;
 
+import com.tencent.wxcloudrun.dto.practice.PracticeAttemptDTO;
 import com.tencent.wxcloudrun.dto.quest.PracticeSubmitRequest;
 import com.tencent.wxcloudrun.dto.quest.PracticeSubmitResponse;
 import com.tencent.wxcloudrun.model.quest.Material;
@@ -11,7 +12,7 @@ import java.util.List;
 public interface PracticeService {
     PracticeSubmitResponse submitAndUpdate(Long studentId, PracticeSubmitRequest req);
 
-    List<Attempt> getAttemptsByStudentId(Long studentId);
+    List<PracticeAttemptDTO> getAttemptsByStudentId(Long studentId);
 
     List<AttemptAnswer> getDetailByAttemptId(Long  attemptId);
 

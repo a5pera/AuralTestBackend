@@ -1,6 +1,7 @@
 package com.tencent.wxcloudrun.service.impl;
 
 import com.tencent.wxcloudrun.dao.*;
+import com.tencent.wxcloudrun.dto.practice.PracticeAttemptDTO;
 import com.tencent.wxcloudrun.dto.quest.MaterialIdAndLevel;
 import com.tencent.wxcloudrun.dto.quest.PracticeSubmitRequest;
 import com.tencent.wxcloudrun.dto.quest.PracticeSubmitResponse;
@@ -176,9 +177,20 @@ public class PracticeServiceImpl implements PracticeService {
     }
 
     @Override
-    public List<Attempt> getAttemptsByStudentId(Long studentId) {
+    public List<PracticeAttemptDTO> getAttemptsByStudentId(Long studentId) {
         if (studentId == null) throw new IllegalArgumentException("LOST_STUDENT_ID");
-        return attemptMapper.listAttemptByStudentId(studentId);
+        List<Attempt> attempts = attemptMapper.listAttemptByStudentId(studentId);
+        List<PracticeAttemptDTO> out = new ArrayList<>();
+        for (Attempt attempt : attempts) {
+            PracticeAttemptDTO item = new PracticeAttemptDTO();
+            item.setAttemptId(attempt.getId());
+            Material m = materialMapper.findById(attempt.getMaterialId());
+            item.setMaterialTitle(m.getTitle());
+            item.setThetaBefore(attempt.getThetaBefore());
+            item.setThetaAfter(attempt.getThetaAfter());
+            item.setSubmittedAt(attempt.getSubmittedAt());
+        }
+        return out;
     }
 
     @Override

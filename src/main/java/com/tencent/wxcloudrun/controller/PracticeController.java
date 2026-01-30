@@ -2,6 +2,7 @@ package com.tencent.wxcloudrun.controller;
 
 import com.tencent.wxcloudrun.config.ApiResponse;
 import com.tencent.wxcloudrun.dao.AttemptAnswerMapper;
+import com.tencent.wxcloudrun.dto.practice.PracticeAttemptDTO;
 import com.tencent.wxcloudrun.dto.quest.PracticeSubmitRequest;
 import com.tencent.wxcloudrun.dto.quest.PracticeSubmitResponse;
 import com.tencent.wxcloudrun.dto.quest.PracticedQuestionCountDTO;
@@ -43,7 +44,7 @@ public class PracticeController {
     public ApiResponse getPracticed(Authentication authentication) {
         try {
             Long studentId = (Long) authentication.getPrincipal();
-            List<Attempt> attemptsByStudentId = practiceService.getAttemptsByStudentId(studentId);
+            List<PracticeAttemptDTO> attemptsByStudentId = practiceService.getAttemptsByStudentId(studentId);
             return ApiResponse.ok(attemptsByStudentId);
         } catch (Exception e) {
             return ApiResponse.error(e.getMessage());
