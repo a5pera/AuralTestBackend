@@ -41,7 +41,7 @@ public interface AttemptAnswerMapper {
 
     @Select("""
             SELECT id, attempt_id AS attemptId, question_id AS questionId, chosen_key AS chosenKey, is_correct AS isCorrect
-            FROM attempt_answer
+            FROM attempt_answers
             WHERE attempt_id = #{attemptId}
             """)
     List<AttemptAnswer> findByAttemptId(@Param("attemptId") long attemptId);
