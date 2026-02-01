@@ -56,7 +56,7 @@ public class AdminController {
         }
     }
 
-    @GetMapping("/get-student-practiced-detailed/{studentId}/{attemptId}")
+    @GetMapping("/get-student-practiced-detailed/{attemptId}")
     public ApiResponse getStudentPracticedDetailed(@PathVariable("attemptId") Long attemptId) {
         try {
             List<AttemptAnswer> out = practiceService.getDetailByAttemptId(attemptId);
