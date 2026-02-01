@@ -2,6 +2,7 @@ package com.tencent.wxcloudrun.service.impl;
 
 import com.tencent.wxcloudrun.dao.*;
 import com.tencent.wxcloudrun.dto.practice.PracticeAttemptDTO;
+import com.tencent.wxcloudrun.dto.practice.PracticeAttemptDetailedDTO;
 import com.tencent.wxcloudrun.dto.quest.MaterialIdAndLevel;
 import com.tencent.wxcloudrun.dto.quest.PracticeSubmitRequest;
 import com.tencent.wxcloudrun.dto.quest.PracticeSubmitResponse;
@@ -21,7 +22,6 @@ import java.time.LocalDateTime;
 import java.util.*;
 
 import static org.apache.commons.lang3.StringUtils.isBlank;
-import static org.apache.commons.lang3.StringUtils.isEmpty;
 
 @Service
 public class PracticeServiceImpl implements PracticeService {
@@ -197,9 +197,22 @@ public class PracticeServiceImpl implements PracticeService {
     }
 
     @Override
-    public List<AttemptAnswer> getDetailByAttemptId(Long attemptId) {
+    public List<PracticeAttemptDetailedDTO> getDetailByAttemptId(Long attemptId) {
         if (attemptId == null) throw new IllegalArgumentException("LOST_ATTEMPT_ID");
-        return attemptAnswerMapper.findByAttemptId(attemptId);
+        List<AttemptAnswer> attemptAnswers = attemptAnswerMapper.findByAttemptId(attemptId);
+        List<PracticeAttemptDetailedDTO> out = new ArrayList<>();
+        for (AttemptAnswer attemptAnswer : attemptAnswers) {
+            PracticeAttemptDetailedDTO item = new PracticeAttemptDetailedDTO();
+            Question q = questionMapper.findById(attemptAnswer.getQuestionId());
+            item.setQuestionId(q.getId());
+            item.setId(attemptAnswer.getId());
+            item.setAttemptId(attemptAnswer.getAttemptId());
+            item.setCorrectKey(q.getCorrectKey());
+            item.setIsCorrect(attemptAnswer.getIsCorrect());
+            item.setChosenKey(attemptAnswer.getChosenKey());
+            out.add(item);
+        }
+        return out;
     }
 
     @Override

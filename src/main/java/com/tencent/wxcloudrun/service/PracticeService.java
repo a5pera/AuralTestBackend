@@ -1,11 +1,10 @@
 package com.tencent.wxcloudrun.service;
 
 import com.tencent.wxcloudrun.dto.practice.PracticeAttemptDTO;
+import com.tencent.wxcloudrun.dto.practice.PracticeAttemptDetailedDTO;
 import com.tencent.wxcloudrun.dto.quest.PracticeSubmitRequest;
 import com.tencent.wxcloudrun.dto.quest.PracticeSubmitResponse;
 import com.tencent.wxcloudrun.model.quest.Material;
-import com.tencent.wxcloudrun.model.user.Attempt;
-import com.tencent.wxcloudrun.model.user.AttemptAnswer;
 
 import java.util.List;
 
@@ -14,7 +13,7 @@ public interface PracticeService {
 
     List<PracticeAttemptDTO> getAttemptsByStudentId(Long studentId);
 
-    List<AttemptAnswer> getDetailByAttemptId(Long  attemptId);
+    List<PracticeAttemptDetailedDTO> getDetailByAttemptId(Long attemptId);
 
     List<Material> recommendTop5Materials(long studentId);
 }
