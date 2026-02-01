@@ -37,4 +37,11 @@ public interface AttemptMapper {
             """)
     int countByStudentAndMaterial(@Param("studentId") Long studentId,
                                   @Param("materialId") Long materialId);
+
+    @Select("""
+        SELECT COUNT(DISTINCT material_id)
+        FROM attempts
+        WHERE student_id = #{studentId}
+    """)
+    long countDistinctMaterialByStudentId(@Param("studentId") Long studentId);
 }

@@ -21,6 +21,7 @@ import java.time.LocalDateTime;
 import java.util.*;
 
 import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
 
 @Service
 public class PracticeServiceImpl implements PracticeService {
@@ -185,6 +186,7 @@ public class PracticeServiceImpl implements PracticeService {
             PracticeAttemptDTO item = new PracticeAttemptDTO();
             item.setAttemptId(attempt.getId());
             Material m = materialMapper.findById(attempt.getMaterialId());
+            item.setMaterialId(m.getId());
             item.setMaterialTitle(m.getTitle());
             item.setThetaBefore(attempt.getThetaBefore());
             item.setThetaAfter(attempt.getThetaAfter());

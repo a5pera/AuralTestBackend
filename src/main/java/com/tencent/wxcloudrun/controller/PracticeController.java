@@ -2,6 +2,7 @@ package com.tencent.wxcloudrun.controller;
 
 import com.tencent.wxcloudrun.config.ApiResponse;
 import com.tencent.wxcloudrun.dao.AttemptAnswerMapper;
+import com.tencent.wxcloudrun.dao.AttemptMapper;
 import com.tencent.wxcloudrun.dto.practice.PracticeAttemptDTO;
 import com.tencent.wxcloudrun.dto.quest.PracticeSubmitRequest;
 import com.tencent.wxcloudrun.dto.quest.PracticeSubmitResponse;
@@ -23,10 +24,14 @@ public class PracticeController {
 
     private final AttemptAnswerMapper attemptAnswerMapper;
 
+    private final AttemptMapper attemptMapper;
+
     public PracticeController(PracticeService practiceService,
-                              AttemptAnswerMapper attemptAnswerMapper) {
+                              AttemptAnswerMapper attemptAnswerMapper,
+                              AttemptMapper attemptMapper) {
         this.practiceService = practiceService;
         this.attemptAnswerMapper = attemptAnswerMapper;
+        this.attemptMapper = attemptMapper;
     }
 
     @PostMapping("/submit")
@@ -80,10 +85,12 @@ public class PracticeController {
 
         Long studentId = (Long) authentication.getPrincipal();
 
+        long materialCount = attemptMapper.countDistinctMaterialByStudentId(studentId);
         long cnt = attemptAnswerMapper.countPracticedQuestions(studentId);
         long uniq = attemptAnswerMapper.countUniquePracticedQuestions(studentId);
 
         PracticedQuestionCountDTO out = new PracticedQuestionCountDTO();
+        out.setMaterialCount(materialCount);
         out.setPracticedQuestionCount(cnt);
         out.setUniqueQuestionCount(uniq);
 
