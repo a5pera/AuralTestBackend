@@ -4,6 +4,7 @@ import com.tencent.wxcloudrun.config.ApiResponse;
 import com.tencent.wxcloudrun.dto.admin.LeaderboardResponse;
 import com.tencent.wxcloudrun.dto.auth.AdminLoginRequest;
 import com.tencent.wxcloudrun.dto.practice.PracticeAttemptDTO;
+import com.tencent.wxcloudrun.dto.practice.PracticeAttemptDetailedDTO;
 import com.tencent.wxcloudrun.model.user.AttemptAnswer;
 import com.tencent.wxcloudrun.service.AuthService;
 import com.tencent.wxcloudrun.service.MaterialService;
@@ -59,7 +60,7 @@ public class AdminController {
     @GetMapping("/get-student-practiced-detailed/{attemptId}")
     public ApiResponse getStudentPracticedDetailed(@PathVariable("attemptId") Long attemptId) {
         try {
-            List<AttemptAnswer> out = practiceService.getDetailByAttemptId(attemptId);
+            List<PracticeAttemptDetailedDTO> out = practiceService.getDetailByAttemptId(attemptId);
             return ApiResponse.ok(out);
         } catch (Exception e) {
             return ApiResponse.error(e.getMessage());
