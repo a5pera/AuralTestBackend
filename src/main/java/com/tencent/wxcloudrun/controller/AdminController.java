@@ -4,6 +4,7 @@ import com.tencent.wxcloudrun.config.ApiResponse;
 import com.tencent.wxcloudrun.dto.admin.LeaderboardResponse;
 import com.tencent.wxcloudrun.dto.auth.AdminLoginRequest;
 import com.tencent.wxcloudrun.dto.practice.PracticeAttemptDTO;
+import com.tencent.wxcloudrun.model.user.AttemptAnswer;
 import com.tencent.wxcloudrun.service.AuthService;
 import com.tencent.wxcloudrun.service.MaterialService;
 import com.tencent.wxcloudrun.service.PracticeService;
@@ -50,6 +51,16 @@ public class AdminController {
         try {
             List<PracticeAttemptDTO> attempts = practiceService.getAttemptsByStudentId(studentId);
             return ApiResponse.ok(attempts);
+        } catch (Exception e) {
+            return ApiResponse.error(e.getMessage());
+        }
+    }
+
+    @GetMapping("/get-student-practiced-detailed/{studentId}/{attemptId}")
+    public ApiResponse getStudentPracticedDetailed(@PathVariable("attemptId") Long attemptId) {
+        try {
+            List<AttemptAnswer> out = practiceService.getDetailByAttemptId(attemptId);
+            return ApiResponse.ok(out);
         } catch (Exception e) {
             return ApiResponse.error(e.getMessage());
         }
