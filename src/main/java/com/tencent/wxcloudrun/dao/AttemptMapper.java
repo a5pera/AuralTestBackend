@@ -23,6 +23,17 @@ public interface AttemptMapper {
     List<Attempt> listAttempt();
 
     @Select("""
+                SELECT id
+                FROM attempts
+                WHERE student_id = #{studentId}
+                  AND material_id = #{materialId}
+                ORDER BY submitted_at DESC, id DESC
+                LIMIT 1
+            """)
+    Long findLatestAttemptId(@Param("studentId") Long studentId,
+                             @Param("materialId") Long materialId);
+
+    @Select("""
                 SELECT id, material_id AS materialId, total_q AS totalQ, theta_before AS thetaBefore,
                     theta_after AS thetaAfter, started_at as startedAt, submitted_at AS submittedAt
                 FROM attempts

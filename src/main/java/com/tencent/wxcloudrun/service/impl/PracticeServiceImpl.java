@@ -1,6 +1,7 @@
 package com.tencent.wxcloudrun.service.impl;
 
 import com.tencent.wxcloudrun.dao.*;
+import com.tencent.wxcloudrun.dto.db.AttemptAnswerRow;
 import com.tencent.wxcloudrun.dto.db.RedoMaterialRow;
 import com.tencent.wxcloudrun.dto.db.RedoQuestionRow;
 import com.tencent.wxcloudrun.dto.practice.PracticeAttemptDTO;
@@ -294,31 +295,51 @@ public class PracticeServiceImpl implements PracticeService {
         if (studentId == null) throw new IllegalArgumentException("NO_AUTH");
         if (materialId == null) throw new IllegalArgumentException("MATERIAL_ID_MISSING");
 
-        // 可选：没做过不让看正确答案（你不想限制就删掉这段）
-        Integer ok = attemptMapper.existsByStudentAndMaterial(studentId, materialId);
-        if (ok == null) throw new IllegalArgumentException("NOT_PRACTICED");
+        // 1) 必须做过（并取最新一次 attemptId）
+        Long latestAttemptId = attemptMapper.findLatestAttemptId(studentId, materialId);
+        if (latestAttemptId == null) throw new IllegalArgumentException("NOT_PRACTICED");
 
+        // 2) 拉取 material + audio
         RedoMaterialRow row = materialMapper.findRedoRowById(materialId);
         if (row == null) throw new IllegalArgumentException("MATERIAL_NOT_FOUND");
 
+        // 3) 拉取题目
         List<RedoQuestionRow> qs = questionMapper.listRedoByMaterialId(materialId);
         if (qs == null || qs.isEmpty()) throw new IllegalArgumentException("NO_QUESTIONS");
 
+        // 4) 拉取“上一次选择”映射：questionId -> chosenKey
+        List<AttemptAnswerRow> lastRows = attemptAnswerMapper.listByAttemptId(latestAttemptId);
+        Map<Long, String> lastChosen = new HashMap<>();
+        if (lastRows != null) {
+            for (AttemptAnswerRow ar : lastRows) {
+                if (ar != null && ar.getQuestionId() != null) {
+                    String ck = ar.getChosenKey();
+                    lastChosen.put(ar.getQuestionId(), ck == null ? null : ck.trim().toUpperCase());
+                }
+            }
+        }
+
+        // 5) 组装返回 DTO
         RedoGetPracticeRequest out = new RedoGetPracticeRequest();
         out.setMaterialId(row.getMaterialId());
         out.setMaterialTitle(row.getMaterialTitle());
         out.setMaterialTranscript(row.getMaterialTranscript());
         out.setMaterialLevel(row.getMaterialLevel());
         out.setAudioId(row.getAudioId());
-        out.setAudioPath(row.getAudioPath());   // audio_assets.local_path
-        out.setAudioType(row.getAudioType());   // audio_assets.mime_type
+        out.setAudioPath(row.getAudioPath()); // audio_assets.local_path
+        out.setAudioType(row.getAudioType()); // audio_assets.mime_type
 
         List<RedoGetPracticeRequest.QuestionPracticeDTO> qDtos = new ArrayList<>(qs.size());
         for (RedoQuestionRow q : qs) {
             RedoGetPracticeRequest.QuestionPracticeDTO qdto = new RedoGetPracticeRequest.QuestionPracticeDTO();
             qdto.setQId(q.getQId());
             qdto.setQOrder(q.getQOrder());
-            qdto.setCorrectKey(q.getCorrectKey());
+
+            String correct = q.getCorrectKey();
+            qdto.setCorrectKey(correct == null ? null : correct.trim().toUpperCase());
+
+            // ✅ 上一次选择（可能为 null，表示上次没存到/没答）
+            qdto.setLastSelectedKey(lastChosen.get(q.getQId()));
 
             List<RedoGetPracticeRequest.OptionDTO> opts =
                     questionOptionMapper.listOptionDTOByQuestionId(q.getQId());

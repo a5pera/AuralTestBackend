@@ -1,5 +1,6 @@
 package com.tencent.wxcloudrun.dao;
 
+import com.tencent.wxcloudrun.dto.db.AttemptAnswerRow;
 import com.tencent.wxcloudrun.model.user.AttemptAnswer;
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
@@ -45,4 +46,12 @@ public interface AttemptAnswerMapper {
             WHERE attempt_id = #{attemptId}
             """)
     List<AttemptAnswer> findByAttemptId(@Param("attemptId") long attemptId);
+
+    @Select("""
+        SELECT question_id AS questionId,
+               chosen_key  AS chosenKey
+        FROM attempt_answers
+        WHERE attempt_id = #{attemptId}
+    """)
+    List<AttemptAnswerRow> listByAttemptId(@Param("attemptId") Long attemptId);
 }

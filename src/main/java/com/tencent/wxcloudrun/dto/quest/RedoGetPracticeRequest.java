@@ -22,6 +22,7 @@ public class RedoGetPracticeRequest {
         private Long qId;
         private Integer qOrder;
         private String correctKey;
+        private String lastSelectedKey;
         private List<OptionDTO> options;
     }
 
