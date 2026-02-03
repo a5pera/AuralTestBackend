@@ -69,7 +69,7 @@ public class MaterialController {
         }
     }
 
-    @PostMapping("/activate/{id}")
+    @PutMapping("/activate/{id}")
     public ApiResponse activateMaterial(@PathVariable("id") Long id) {
         try {
             int out = materialService.activate(id);
