@@ -1,5 +1,6 @@
 package com.tencent.wxcloudrun.dao;
 
+import com.tencent.wxcloudrun.dto.db.QuestionOptionRow;
 import com.tencent.wxcloudrun.dto.quest.RedoGetPracticeRequest;
 import com.tencent.wxcloudrun.model.quest.QuestionOption;
 import org.apache.ibatis.annotations.*;
@@ -54,6 +55,18 @@ public interface QuestionOptionMapper {
 //            """)
 //    int deleteOne(@Param("questionId") long questionId,
 //                  @Param("optKey") String optKey);
+
+    @Select("""
+                <script>
+                SELECT question_id AS questionId, opt_key AS optKey, content
+                FROM question_options
+                WHERE question_id IN
+                <foreach collection="questionIds" item="id" open="(" separator="," close=")">
+                    #{id}
+                </foreach>
+                </script>
+            """)
+    List<QuestionOptionRow> listByQuestionIds(@Param("questionIds") List<Long> questionIds);
 
     @Insert("""
             INSERT INTO question_options(question_id, opt_key, content)

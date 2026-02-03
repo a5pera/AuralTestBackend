@@ -1,6 +1,7 @@
 package com.tencent.wxcloudrun.service.impl;
 
 import com.tencent.wxcloudrun.dao.*;
+import com.tencent.wxcloudrun.dto.db.QuestionOptionRow;
 import com.tencent.wxcloudrun.dto.quest.*;
 import com.tencent.wxcloudrun.model.auth.Student;
 import com.tencent.wxcloudrun.model.quest.Material;
@@ -356,6 +357,75 @@ public class MaterialServiceImpl implements MaterialService {
         out.put("materialId", materialId);
         out.put("questionCount", questionCount);
         return out;
+    }
+
+    @Override
+    public UploadMaterialRequest getMaterialDtoById(Long materialId) {
+        if (materialId == null) throw new IllegalArgumentException("MATERIAL_ID_MISSING");
+
+        Material m = materialMapper.findById(materialId);
+        if (m == null) throw new IllegalArgumentException("MATERIAL_NOT_FOUND");
+
+        List<Question> qs = questionMapper.listByMaterialId(materialId);
+        if (qs == null) qs = List.of();
+
+        // 批量查 options：questionId -> options
+        Map<Long, List<QuestionOption>> optMap = new HashMap<>();
+        if (!qs.isEmpty()) {
+            List<Long> qIds = qs.stream().map(Question::getId).toList();
+            List<QuestionOptionRow> allOpts = questionOptionMapper.listByQuestionIds(qIds);
+
+            for (QuestionOptionRow row : allOpts) {
+                optMap.computeIfAbsent(row.getQuestionId(), k -> new ArrayList<>())
+                        .add(toEntity(row));
+            }
+
+            // 可选：每题的选项按 optKey 排序 A/B/C/D
+            for (List<QuestionOption> list : optMap.values()) {
+                list.sort(Comparator.comparing(QuestionOption::getOptKey));
+            }
+        }
+
+        // 组装 DTO
+        UploadMaterialRequest out = new UploadMaterialRequest();
+        out.setTitle(m.getTitle());
+        out.setLevel(m.getLevel());
+        out.setTranscript(m.getTranscript());
+        out.setAudioId(m.getAudioId());
+
+        // 题目按 qOrder 排序
+        qs.sort(Comparator.comparing(Question::getQOrder, Comparator.nullsLast(Integer::compareTo)));
+
+        List<UploadMaterialRequest.QuestionCreateDTO> qDtos = new ArrayList<>(qs.size());
+        for (Question q : qs) {
+            UploadMaterialRequest.QuestionCreateDTO qdto = new UploadMaterialRequest.QuestionCreateDTO();
+            qdto.setQOrder(q.getQOrder());
+            qdto.setStem(q.getStem());
+            qdto.setDifficulty(q.getDifficulty());
+            qdto.setCorrectKey(q.getCorrectKey());
+
+            List<QuestionOption> opts = optMap.getOrDefault(q.getId(), List.of());
+            List<UploadMaterialRequest.OptionDTO> odtos = new ArrayList<>(opts.size());
+            for (QuestionOption o : opts) {
+                UploadMaterialRequest.OptionDTO odto = new UploadMaterialRequest.OptionDTO();
+                odto.setOptKey(o.getOptKey());
+                odto.setContent(o.getContent());
+                odtos.add(odto);
+            }
+            qdto.setOptions(odtos);
+            qDtos.add(qdto);
+        }
+
+        out.setQuestions(qDtos);
+        return out;
+    }
+
+    private static QuestionOption toEntity(QuestionOptionRow row) {
+        QuestionOption o = new QuestionOption();
+        o.setQuestionId(row.getQuestionId());
+        o.setOptKey(row.getOptKey());
+        o.setContent(row.getContent());
+        return o;
     }
 
     // ---------------- helpers ----------------

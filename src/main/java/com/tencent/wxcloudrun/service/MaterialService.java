@@ -32,6 +32,8 @@ public interface MaterialService {
     // 激活材料
     int activate(Long materialId);
 
+    UploadMaterialRequest getMaterialDtoById(Long materialId);
+
     // 插入材料
     Map<String, Object> createMaterialWithQuestions(UploadMaterialRequest req);
 

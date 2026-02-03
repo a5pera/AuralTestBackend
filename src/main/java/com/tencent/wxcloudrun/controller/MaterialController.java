@@ -21,6 +21,7 @@ import java.util.Map;
 public class MaterialController {
     private final MaterialService materialService;
     private final MaterialMapper materialMapper;
+
     public MaterialController(MaterialService materialService, MaterialMapper materialMapper) {
         this.materialService = materialService;
         this.materialMapper = materialMapper;
@@ -53,6 +54,16 @@ public class MaterialController {
             Long studentId = (Long) authentication.getPrincipal();
             GetPracticeRequest m = materialService.getAMaterial(studentId);
             return ApiResponse.ok(m);
+        } catch (Exception e) {
+            return ApiResponse.error(e.getMessage());
+        }
+    }
+
+    @GetMapping("/get-material/{id}")
+    public ApiResponse getMaterialById(@PathVariable("id") Long materialId) {
+        try {
+            UploadMaterialRequest dto = materialService.getMaterialDtoById(materialId);
+            return ApiResponse.ok(dto);
         } catch (Exception e) {
             return ApiResponse.error(e.getMessage());
         }
