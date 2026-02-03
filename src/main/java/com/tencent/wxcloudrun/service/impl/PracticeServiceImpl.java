@@ -1,11 +1,14 @@
 package com.tencent.wxcloudrun.service.impl;
 
 import com.tencent.wxcloudrun.dao.*;
+import com.tencent.wxcloudrun.dto.db.RedoMaterialRow;
+import com.tencent.wxcloudrun.dto.db.RedoQuestionRow;
 import com.tencent.wxcloudrun.dto.practice.PracticeAttemptDTO;
 import com.tencent.wxcloudrun.dto.practice.PracticeAttemptDetailedDTO;
 import com.tencent.wxcloudrun.dto.quest.MaterialIdAndLevel;
 import com.tencent.wxcloudrun.dto.quest.PracticeSubmitRequest;
 import com.tencent.wxcloudrun.dto.quest.PracticeSubmitResponse;
+import com.tencent.wxcloudrun.dto.quest.RedoGetPracticeRequest;
 import com.tencent.wxcloudrun.model.quest.Material;
 import com.tencent.wxcloudrun.model.quest.Question;
 import com.tencent.wxcloudrun.model.auth.Student;
@@ -32,19 +35,22 @@ public class PracticeServiceImpl implements PracticeService {
     private final AttemptMapper attemptMapper;
     private final AttemptAnswerMapper attemptAnswerMapper;
     private final MaterialMapper materialMapper;
+    private final QuestionOptionMapper questionOptionMapper;
 
     public PracticeServiceImpl(StudentMapper studentMapper,
                                QuestionMapper questionMapper,
                                StudentAbilityStateMapper abilityStateMapper,
                                AttemptMapper attemptMapper,
                                AttemptAnswerMapper attemptAnswerMapper,
-                               MaterialMapper materialMapper) {
+                               MaterialMapper materialMapper,
+                               QuestionOptionMapper questionOptionMapper) {
         this.studentMapper = studentMapper;
         this.questionMapper = questionMapper;
         this.abilityStateMapper = abilityStateMapper;
         this.attemptMapper = attemptMapper;
         this.attemptAnswerMapper = attemptAnswerMapper;
         this.materialMapper = materialMapper;
+        this.questionOptionMapper = questionOptionMapper;
     }
 
     @Override
@@ -280,6 +286,48 @@ public class PracticeServiceImpl implements PracticeService {
             Material m = map.get(id);
             if (m != null) out.add(m);
         }
+        return out;
+    }
+
+    @Override
+    public RedoGetPracticeRequest getRedoMaterial(Long studentId, Long materialId) {
+        if (studentId == null) throw new IllegalArgumentException("NO_AUTH");
+        if (materialId == null) throw new IllegalArgumentException("MATERIAL_ID_MISSING");
+
+        // 可选：没做过不让看正确答案（你不想限制就删掉这段）
+        Integer ok = attemptMapper.existsByStudentAndMaterial(studentId, materialId);
+        if (ok == null) throw new IllegalArgumentException("NOT_PRACTICED");
+
+        RedoMaterialRow row = materialMapper.findRedoRowById(materialId);
+        if (row == null) throw new IllegalArgumentException("MATERIAL_NOT_FOUND");
+
+        List<RedoQuestionRow> qs = questionMapper.listRedoByMaterialId(materialId);
+        if (qs == null || qs.isEmpty()) throw new IllegalArgumentException("NO_QUESTIONS");
+
+        RedoGetPracticeRequest out = new RedoGetPracticeRequest();
+        out.setMaterialId(row.getMaterialId());
+        out.setMaterialTitle(row.getMaterialTitle());
+        out.setMaterialTranscript(row.getMaterialTranscript());
+        out.setMaterialLevel(row.getMaterialLevel());
+        out.setAudioId(row.getAudioId());
+        out.setAudioPath(row.getAudioPath());   // audio_assets.local_path
+        out.setAudioType(row.getAudioType());   // audio_assets.mime_type
+
+        List<RedoGetPracticeRequest.QuestionPracticeDTO> qDtos = new ArrayList<>(qs.size());
+        for (RedoQuestionRow q : qs) {
+            RedoGetPracticeRequest.QuestionPracticeDTO qdto = new RedoGetPracticeRequest.QuestionPracticeDTO();
+            qdto.setQId(q.getQId());
+            qdto.setQOrder(q.getQOrder());
+            qdto.setCorrectKey(q.getCorrectKey());
+
+            List<RedoGetPracticeRequest.OptionDTO> opts =
+                    questionOptionMapper.listOptionDTOByQuestionId(q.getQId());
+            qdto.setOptions(opts == null ? List.of() : opts);
+
+            qDtos.add(qdto);
+        }
+
+        out.setQuestions(qDtos);
         return out;
     }
 

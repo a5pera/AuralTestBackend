@@ -21,7 +21,7 @@ public interface MaterialService {
     MaterialItemDTO getForStudent(long studentId, long materialId);
 
     // 更新（管理员用）
-    MaterialDetailDTO update(long materialId, MaterialDetailDTO req);
+    Map<String, Object> updateMaterialWithQuestions(Long materialId, UploadMaterialRequest req);
 
     // 给学生推送一条合适难度的练习
     GetPracticeRequest getAMaterial(long studentId);

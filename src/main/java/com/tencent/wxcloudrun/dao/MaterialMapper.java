@@ -1,5 +1,6 @@
 package com.tencent.wxcloudrun.dao;
 
+import com.tencent.wxcloudrun.dto.db.RedoMaterialRow;
 import com.tencent.wxcloudrun.dto.quest.MaterialIdAndLevel;
 import com.tencent.wxcloudrun.model.quest.Material;
 import org.apache.ibatis.annotations.*;
@@ -71,6 +72,23 @@ public interface MaterialMapper {
     })
     List<Material> listByIds(@Param("ids") List<Long> ids);
 
+    @Select("""
+                SELECT 
+                    m.id            AS materialId,
+                    m.title         AS materialTitle,
+                    m.transcript    AS materialTranscript,
+                    m.level         AS materialLevel,
+                    m.audio_id      AS audioId,
+                    a.local_path    AS audioPath,
+                    a.mime_type     AS audioType
+                FROM materials m
+                JOIN audio_assets a ON a.id = m.audio_id
+                WHERE m.id = #{materialId}
+                  AND m.is_active = 1
+                LIMIT 1
+            """)
+    RedoMaterialRow findRedoRowById(@Param("materialId") Long materialId);
+
     @Update("""
                 UPDATE materials
                 SET title = #{title},
@@ -80,7 +98,7 @@ public interface MaterialMapper {
                     is_active = #{isActive}
                 WHERE id = #{id}
             """)
-    int update(Material m);
+    int updateById(Material m);
 
     @Update("""
                 UPDATE materials

@@ -68,6 +68,16 @@ public class MaterialController {
         }
     }
 
+    @PutMapping("/update/{id}")
+    public ApiResponse updateMaterial(@PathVariable("id") Long materialId,
+                                      @RequestBody UploadMaterialRequest req) {
+        try {
+            return ApiResponse.ok(materialService.updateMaterialWithQuestions(materialId, req));
+        } catch (Exception e) {
+            return ApiResponse.error(e.getMessage());
+        }
+    }
+
     @DeleteMapping("/delete/{id}")
     public ApiResponse softDelete(@PathVariable("id") Long id) {
         try {

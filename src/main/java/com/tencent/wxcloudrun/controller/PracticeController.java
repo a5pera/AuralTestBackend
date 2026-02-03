@@ -8,6 +8,7 @@ import com.tencent.wxcloudrun.dto.practice.PracticeAttemptDetailedDTO;
 import com.tencent.wxcloudrun.dto.quest.PracticeSubmitRequest;
 import com.tencent.wxcloudrun.dto.quest.PracticeSubmitResponse;
 import com.tencent.wxcloudrun.dto.quest.PracticedQuestionCountDTO;
+import com.tencent.wxcloudrun.dto.quest.RedoGetPracticeRequest;
 import com.tencent.wxcloudrun.model.quest.Material;
 import com.tencent.wxcloudrun.model.user.Attempt;
 import com.tencent.wxcloudrun.model.user.AttemptAnswer;
@@ -80,21 +81,37 @@ public class PracticeController {
 
     @GetMapping("/question-count")
     public ApiResponse getQuestionCount(Authentication authentication) {
-        if (authentication == null || authentication.getPrincipal() == null) {
-            return ApiResponse.error("NO_AUTH");
+        try {
+            if (authentication == null || authentication.getPrincipal() == null) {
+                return ApiResponse.error("NO_AUTH");
+            }
+
+            Long studentId = (Long) authentication.getPrincipal();
+
+            long materialCount = attemptMapper.countDistinctMaterialByStudentId(studentId);
+            long cnt = attemptAnswerMapper.countPracticedQuestions(studentId);
+            long uniq = attemptAnswerMapper.countUniquePracticedQuestions(studentId);
+
+            PracticedQuestionCountDTO out = new PracticedQuestionCountDTO();
+            out.setMaterialCount(materialCount);
+            out.setPracticedQuestionCount(cnt);
+            out.setUniqueQuestionCount(uniq);
+
+            return ApiResponse.ok(out);
+        } catch (Exception e) {
+            return ApiResponse.error(e.getMessage());
         }
+    }
 
-        Long studentId = (Long) authentication.getPrincipal();
-
-        long materialCount = attemptMapper.countDistinctMaterialByStudentId(studentId);
-        long cnt = attemptAnswerMapper.countPracticedQuestions(studentId);
-        long uniq = attemptAnswerMapper.countUniquePracticedQuestions(studentId);
-
-        PracticedQuestionCountDTO out = new PracticedQuestionCountDTO();
-        out.setMaterialCount(materialCount);
-        out.setPracticedQuestionCount(cnt);
-        out.setUniqueQuestionCount(uniq);
-
-        return ApiResponse.ok(out);
+    @GetMapping("/redo/{materialId}")
+    public ApiResponse redo(@PathVariable("materialId") Long materialId,
+                            Authentication authentication) {
+        try {
+            Long studentId = (Long) authentication.getPrincipal(); // 你项目里就是这么取的
+            RedoGetPracticeRequest dto = practiceService.getRedoMaterial(studentId, materialId);
+            return ApiResponse.ok(dto);
+        } catch (Exception e) {
+            return ApiResponse.error(e.getMessage());
+        }
     }
 }

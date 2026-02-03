@@ -1,8 +1,10 @@
 package com.tencent.wxcloudrun.dao;
 
+import com.tencent.wxcloudrun.dto.db.RedoQuestionRow;
 import com.tencent.wxcloudrun.model.quest.Question;
 import org.apache.ibatis.annotations.*;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Mapper
@@ -44,6 +46,17 @@ public interface QuestionMapper {
             """)
     List<Question> listByMaterialId(@Param("materialId") long materialId);
 
+    @Select("""
+        SELECT 
+            id          AS qId,
+            q_order     AS qOrder,
+            correct_key AS correctKey
+        FROM questions
+        WHERE material_id = #{materialId}
+        ORDER BY q_order ASC
+    """)
+    List<RedoQuestionRow> listRedoByMaterialId(@Param("materialId") Long materialId);
+
     // ✅ 不允许改 material_id / q_order（保证“绑定唯一”语义）
     @Update("""
                 UPDATE questions
@@ -53,6 +66,18 @@ public interface QuestionMapper {
                 WHERE id = #{id}
             """)
     int updateContent(Question q);
+
+    @Update("""
+        UPDATE questions
+        SET stem = #{stem},
+            difficulty = #{difficulty},
+            correct_key = #{correctKey}
+        WHERE id = #{id}
+    """)
+    int updateCoreById(@Param("id") Long id,
+                       @Param("stem") String stem,
+                       @Param("difficulty") BigDecimal difficulty,
+                       @Param("correctKey") String correctKey);
 
     @Delete("""
                 DELETE FROM questions

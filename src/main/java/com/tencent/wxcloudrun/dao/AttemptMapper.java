@@ -31,6 +31,16 @@ public interface AttemptMapper {
     List<Attempt> listAttemptByStudentId(@Param("studentId") long studentId);
 
     @Select("""
+                SELECT 1
+                FROM attempts
+                WHERE student_id = #{studentId}
+                  AND material_id = #{materialId}
+                LIMIT 1
+            """)
+    Integer existsByStudentAndMaterial(@Param("studentId") Long studentId,
+                                       @Param("materialId") Long materialId);
+
+    @Select("""
                 SELECT COUNT(1)
                 FROM attempts
                 WHERE student_id = #{studentId} AND material_id = #{materialId}
@@ -39,9 +49,9 @@ public interface AttemptMapper {
                                   @Param("materialId") Long materialId);
 
     @Select("""
-        SELECT COUNT(DISTINCT material_id)
-        FROM attempts
-        WHERE student_id = #{studentId}
-    """)
+                SELECT COUNT(DISTINCT material_id)
+                FROM attempts
+                WHERE student_id = #{studentId}
+            """)
     long countDistinctMaterialByStudentId(@Param("studentId") Long studentId);
 }

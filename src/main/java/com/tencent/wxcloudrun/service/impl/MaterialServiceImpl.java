@@ -52,8 +52,110 @@ public class MaterialServiceImpl implements MaterialService {
     }
 
     @Override
-    public MaterialDetailDTO update(long materialId, MaterialDetailDTO req) {
-        return null;
+    @Transactional
+    public Map<String, Object> updateMaterialWithQuestions(Long materialId, UploadMaterialRequest req) {
+        if (materialId == null) throw new IllegalArgumentException("MATERIAL_ID_MISSING");
+        if (req == null) throw new IllegalArgumentException("MISSING_BODY");
+        if (isBlank(req.getTitle()) || isBlank(req.getTranscript()) || req.getAudioId() == null) {
+            throw new IllegalArgumentException("MISSING_PARAMS");
+        }
+        if (req.getQuestions() == null || req.getQuestions().isEmpty()) {
+            throw new IllegalArgumentException("QUESTIONS_EMPTY");
+        }
+
+        Material old = materialMapper.findById(materialId);
+        if (old == null) throw new IllegalArgumentException("MATERIAL_NOT_FOUND");
+
+        // 1) 计算/确定 level（若未传则用题目 difficulty 平均）
+        BigDecimal level = req.getLevel();
+        if (level == null) {
+            level = computeLevelFromQuestions(req.getQuestions()).orElse(
+                    old.getLevel() != null ? old.getLevel() : new BigDecimal("5.00")
+            );
+        }
+
+        // 2) 更新 materials
+        Material m = new Material();
+        m.setId(materialId);
+        m.setTitle(req.getTitle().trim());
+        m.setTranscript(req.getTranscript());
+        m.setAudioId(req.getAudioId());
+        m.setLevel(level);
+        materialMapper.updateById(m);
+
+        // 3) 取出该 material 现有 questions（一次性），用 qOrder 做映射
+        List<Question> existedQs = questionMapper.listByMaterialId(materialId);
+        Map<Integer, Question> qByOrder = new HashMap<>();
+        if (existedQs != null) {
+            for (Question q : existedQs) {
+                if (q != null && q.getQOrder() != null) qByOrder.put(q.getQOrder(), q);
+            }
+        }
+
+        int insertedQ = 0, updatedQ = 0;
+        int optionUpsert = 0, optionDeleted = 0;
+
+        // 4) 逐题更新/插入 + 同步选项
+        Set<Integer> orderSet = new HashSet<>();
+        for (UploadMaterialRequest.QuestionCreateDTO qdto : req.getQuestions()) {
+            if (qdto == null) throw new IllegalArgumentException("QUESTION_EMPTY");
+            if (qdto.getQOrder() == null) throw new IllegalArgumentException("QUESTION_ORDER_MISSING");
+            if (!orderSet.add(qdto.getQOrder())) throw new IllegalArgumentException("QUESTION_ORDER_DUPLICATE");
+            if (isBlank(qdto.getStem())) throw new IllegalArgumentException("QUESTION_STEM_MISSING");
+            if (qdto.getDifficulty() == null) throw new IllegalArgumentException("QUESTION_DIFFICULTY_MISSING");
+            if (isBlank(qdto.getCorrectKey())) throw new IllegalArgumentException("QUESTION_CORRECT_KEY_MISSING");
+            if (qdto.getOptions() == null || qdto.getOptions().isEmpty()) throw new IllegalArgumentException("OPTIONS_EMPTY");
+
+            String correctKey = normKey(qdto.getCorrectKey());
+
+            Question exist = qByOrder.get(qdto.getQOrder());
+            Long questionId;
+
+            if (exist == null) {
+                // insert
+                Question nq = new Question();
+                nq.setMaterialId(materialId);
+                nq.setQOrder(qdto.getQOrder());
+                nq.setStem(qdto.getStem().trim());
+                nq.setDifficulty(qdto.getDifficulty());
+                nq.setCorrectKey(correctKey);
+                questionMapper.insert(nq); // useGeneratedKeys 回填 id
+                questionId = nq.getId();
+                insertedQ++;
+            } else {
+                // update
+                questionMapper.updateCoreById(exist.getId(), qdto.getStem().trim(), qdto.getDifficulty(), correctKey);
+                questionId = exist.getId();
+                updatedQ++;
+            }
+
+            if (questionId == null) throw new IllegalStateException("QUESTION_ID_MISSING_AFTER_SAVE");
+
+            // 选项：upsert + 删除不在 DTO 的旧选项
+            Set<String> optKeys = new HashSet<>();
+            for (UploadMaterialRequest.OptionDTO odto : qdto.getOptions()) {
+                if (odto == null) throw new IllegalArgumentException("OPTION_EMPTY");
+                if (isBlank(odto.getOptKey()) || isBlank(odto.getContent())) {
+                    throw new IllegalArgumentException("OPTION_PARAM_MISSING");
+                }
+                String k = normKey(odto.getOptKey());
+                if (!optKeys.add(k)) throw new IllegalArgumentException("OPTION_KEY_DUPLICATE");
+
+                optionUpsert += questionOptionMapper.upsert(questionId, k, odto.getContent().trim());
+            }
+
+            // 删除本题下“不在本次请求里的旧 opt_key”
+            optionDeleted += questionOptionMapper.deleteNotInKeys(questionId, new ArrayList<>(optKeys));
+        }
+
+        Map<String, Object> out = new HashMap<>();
+        out.put("materialId", materialId);
+        out.put("level", level);
+        out.put("insertedQuestions", insertedQ);
+        out.put("updatedQuestions", updatedQ);
+        out.put("optionUpsertAffectedRows", optionUpsert);
+        out.put("deletedOptions", optionDeleted);
+        return out;
     }
 
     // 这里的level是学生的level
