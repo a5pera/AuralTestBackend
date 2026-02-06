@@ -59,6 +59,16 @@ public class MaterialController {
         }
     }
 
+    @GetMapping("/get-practice-specific/{id}")
+    public ApiResponse getPracticeSpecific(@PathVariable("id") Long materialId) {
+        try {
+            GetPracticeRequest out = materialService.getAPracticeMaterialById(materialId);
+            return ApiResponse.ok(out);
+        } catch (Exception e) {
+            return ApiResponse.error(e.getMessage());
+        }
+    }
+
     @GetMapping("/get-material/{id}")
     public ApiResponse getMaterialById(@PathVariable("id") Long materialId) {
         try {

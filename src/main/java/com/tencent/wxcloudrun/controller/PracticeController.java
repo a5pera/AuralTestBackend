@@ -5,10 +5,7 @@ import com.tencent.wxcloudrun.dao.AttemptAnswerMapper;
 import com.tencent.wxcloudrun.dao.AttemptMapper;
 import com.tencent.wxcloudrun.dto.practice.PracticeAttemptDTO;
 import com.tencent.wxcloudrun.dto.practice.PracticeAttemptDetailedDTO;
-import com.tencent.wxcloudrun.dto.quest.PracticeSubmitRequest;
-import com.tencent.wxcloudrun.dto.quest.PracticeSubmitResponse;
-import com.tencent.wxcloudrun.dto.quest.PracticedQuestionCountDTO;
-import com.tencent.wxcloudrun.dto.quest.RedoGetPracticeRequest;
+import com.tencent.wxcloudrun.dto.quest.*;
 import com.tencent.wxcloudrun.model.quest.Material;
 import com.tencent.wxcloudrun.model.user.Attempt;
 import com.tencent.wxcloudrun.model.user.AttemptAnswer;
@@ -72,7 +69,7 @@ public class PracticeController {
     public ApiResponse getRecommendPractice(Authentication authentication) {
         try {
             Long studentId = (Long) authentication.getPrincipal();
-            List<Material> materials = practiceService.recommendTop5Materials(studentId);
+            List<RecommendMaterialDTO> materials = practiceService.recommendTop5Materials(studentId);
             return ApiResponse.ok(materials);
         } catch (Exception e) {
             return ApiResponse.error(e.getMessage());

@@ -6,10 +6,7 @@ import com.tencent.wxcloudrun.dto.db.RedoMaterialRow;
 import com.tencent.wxcloudrun.dto.db.RedoQuestionRow;
 import com.tencent.wxcloudrun.dto.practice.PracticeAttemptDTO;
 import com.tencent.wxcloudrun.dto.practice.PracticeAttemptDetailedDTO;
-import com.tencent.wxcloudrun.dto.quest.MaterialIdAndLevel;
-import com.tencent.wxcloudrun.dto.quest.PracticeSubmitRequest;
-import com.tencent.wxcloudrun.dto.quest.PracticeSubmitResponse;
-import com.tencent.wxcloudrun.dto.quest.RedoGetPracticeRequest;
+import com.tencent.wxcloudrun.dto.quest.*;
 import com.tencent.wxcloudrun.model.quest.Material;
 import com.tencent.wxcloudrun.model.quest.Question;
 import com.tencent.wxcloudrun.model.auth.Student;
@@ -223,7 +220,7 @@ public class PracticeServiceImpl implements PracticeService {
     }
 
     @Override
-    public List<Material> recommendTop5Materials(long studentId) {
+    public List<RecommendMaterialDTO> recommendTop5Materials(long studentId) {
         // 1) 取学生能力 theta
         Student stu = studentMapper.findById(String.valueOf(studentId));
         if (stu == null) throw new IllegalArgumentException("STUDENT_NOT_FOUND");
@@ -282,10 +279,15 @@ public class PracticeServiceImpl implements PracticeService {
         Map<Long, Material> map = new HashMap<>();
         for (Material m : materials) map.put(m.getId(), m);
 
-        List<Material> out = new ArrayList<>();
+        List<RecommendMaterialDTO> out = new ArrayList<>();
         for (Long id : topIds) {
+            RecommendMaterialDTO item = new RecommendMaterialDTO();
             Material m = map.get(id);
-            if (m != null) out.add(m);
+            item.setLevel(m.getLevel());
+            item.setTitle(m.getTitle());
+            item.setId(m.getId());
+            item.setAudioId(m.getAudioId());
+            out.add(item);
         }
         return out;
     }

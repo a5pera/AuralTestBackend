@@ -26,6 +26,9 @@ public interface MaterialService {
     // 给学生推送一条合适难度的练习
     GetPracticeRequest getAMaterial(long studentId);
 
+    // 根据材料id推送一条练习
+    GetPracticeRequest getAPracticeMaterialById(Long materialId);
+
     // 软删除（管理员用：is_active=0）
     void softDelete(Long materialId);
 

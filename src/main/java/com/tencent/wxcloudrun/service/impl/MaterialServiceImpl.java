@@ -236,6 +236,42 @@ public class MaterialServiceImpl implements MaterialService {
         return res;
     }
 
+    public GetPracticeRequest getAPracticeMaterialById(Long materialId) {
+        if (materialId == null) throw new IllegalArgumentException("MISSING_MATERIAL_ID");
+        // 3) 查详情并返回（你说的 mapper.findById）
+        Material m = materialMapper.findById(materialId);
+        if (m == null) throw new IllegalArgumentException("MATERIAL_NOT_FOUND");
+        AudioAsset audio = audioAssetMapper.findById(m.getAudioId());
+
+        GetPracticeRequest res = new GetPracticeRequest();
+        List<Question> questions = questionMapper.listByMaterialId(m.getId());
+        res.setMaterialId(m.getId());
+        res.setMaterialLevel(m.getLevel());
+        res.setAudioId(m.getAudioId());
+        res.setMaterialTitle(m.getTitle());
+        res.setAudioPath(audio.getLocalPath());
+        res.setAudioType(audio.getMimeType());
+        List<GetPracticeRequest.QuestionPracticeDTO> questionPracticeDTOList = new ArrayList<>();
+        for (Question question : questions) {
+            List<QuestionOption> questionOptions = questionOptionMapper.listByQuestionId(question.getId());
+            GetPracticeRequest.QuestionPracticeDTO questionPracticeDTO = new GetPracticeRequest.QuestionPracticeDTO();
+            questionPracticeDTO.setQOrder(question.getQOrder());
+            questionPracticeDTO.setQId(question.getId());
+            // questionPracticeDTO.setCorrectKey(question.getCorrectKey());
+            List<GetPracticeRequest.OptionDTO> optionDTOList = new ArrayList<>();
+            for (QuestionOption questionOption : questionOptions) {
+                GetPracticeRequest.OptionDTO optionDTO = new GetPracticeRequest.OptionDTO();
+                optionDTO.setContent(questionOption.getContent());
+                optionDTO.setOptKey(questionOption.getOptKey());
+                optionDTOList.add(optionDTO);
+            }
+            questionPracticeDTO.setOptions(optionDTOList);
+            questionPracticeDTOList.add(questionPracticeDTO);
+        }
+        res.setQuestions(questionPracticeDTOList);
+        return res;
+    }
+
     @Override
     @Transactional
     public void softDelete(Long materialId) {
