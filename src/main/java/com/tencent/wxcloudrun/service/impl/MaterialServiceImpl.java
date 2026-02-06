@@ -393,6 +393,7 @@ public class MaterialServiceImpl implements MaterialService {
         out.setLevel(m.getLevel());
         out.setTranscript(m.getTranscript());
         out.setAudioId(m.getAudioId());
+        out.setIsActive(m.getIsActive());
 
         // 题目按 qOrder 排序
         qs.sort(Comparator.comparing(Question::getQOrder, Comparator.nullsLast(Integer::compareTo)));
