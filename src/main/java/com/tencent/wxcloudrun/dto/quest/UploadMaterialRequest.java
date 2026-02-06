@@ -11,6 +11,7 @@ public class UploadMaterialRequest {
     private String title;
     private BigDecimal level;      // 可选：材料难度
     private String transcript;
+    private Boolean isActive;
     private Long audioId;
 
     // ------- questions -------

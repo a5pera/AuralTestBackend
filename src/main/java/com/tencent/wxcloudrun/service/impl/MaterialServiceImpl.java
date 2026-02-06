@@ -82,6 +82,7 @@ public class MaterialServiceImpl implements MaterialService {
         m.setTranscript(req.getTranscript());
         m.setAudioId(req.getAudioId());
         m.setLevel(level);
+        m.setIsActive(req.getIsActive());
         materialMapper.updateById(m);
 
         // 3) 取出该 material 现有 questions（一次性），用 qOrder 做映射
