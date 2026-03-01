@@ -1,0 +1,45 @@
+package com.tencent.wxcloudrun.dao;
+
+import com.tencent.wxcloudrun.model.user.Classes;
+import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
+import org.apache.ibatis.annotations.Select;
+import org.apache.ibatis.annotations.Update;
+
+import java.util.List;
+@Mapper
+public interface ClassesMapper {
+    @Select("""
+            SELECT id, name, is_active, created_at, updated_at 
+            FROM classes
+            """)
+    List<Classes> listAll();
+
+    @Select("""
+            SELECT id, name, is_active, created_at, updated_at
+            FROM classes
+            WHERE is_active=1
+            """)
+    List<Classes> listActive();
+
+    @Select("""
+            SELECT id, name, is_active, created_at, updated_at
+            FROM classes
+            WHERE id=#{id}
+            """)
+    Classes findById(@Param("id") Long id);
+
+    @Update("""
+            UPDATE classes
+            SET is_active=1
+            WHERE id=#{id}
+            """)
+    int activate(@Param("id") Long id);
+
+    @Update("""
+            UPDATE classes
+            SET is_active=0
+            WHERE id=#{id}
+            """)
+    int deActivate(@Param("id") Long id);
+}
