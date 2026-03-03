@@ -16,6 +16,13 @@ public interface StudentMapper {
     Student findById(@Param("studentId") String studentId);
 
     @Select("""
+            SELECT id, roster_id, student_no AS studentNo, name, college, wechat_openid AS wechatOpenid, theta, bound_at AS boundAt, class_id AS classId
+            FROM students WHERE id = #{studentId}
+            """
+    )
+    Student findByIntegerId(@Param("studentId") Long studentId);
+
+    @Select("""
               SELECT id, student_no AS studentNo, name, college, wechat_openid AS wechatOpenid, theta, class_id AS classId
               FROM students WHERE wechat_openid = #{openid} LIMIT 1
             """)
