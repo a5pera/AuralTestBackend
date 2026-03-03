@@ -7,6 +7,7 @@ import com.tencent.wxcloudrun.dto.auth.AuthData;
 import com.tencent.wxcloudrun.model.auth.AdminUser;
 import com.tencent.wxcloudrun.model.auth.Student;
 import com.tencent.wxcloudrun.model.auth.StudentRoster;
+import com.tencent.wxcloudrun.model.user.Classes;
 import com.tencent.wxcloudrun.security.JwtUtil;
 import com.tencent.wxcloudrun.service.AuthService;
 import io.jsonwebtoken.Jwts;
@@ -34,16 +35,19 @@ public class AuthServiceImpl implements AuthService {
     private final JwtUtil jwtUtil;
     private final AdminUserMapper adminUserMapper;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
+    private final ClassesMapper classesMapper;
 
     public AuthServiceImpl(StudentMapper studentMapper, SessionMapper sessionMapper,
                            StudentRosterMapper studentRosterMapper, JwtUtil jwtUtil,
-                           AdminUserMapper adminUserMapper, BCryptPasswordEncoder bCryptPasswordEncoder) {
+                           AdminUserMapper adminUserMapper, BCryptPasswordEncoder bCryptPasswordEncoder,
+                           ClassesMapper classesMapper) {
         this.studentMapper = studentMapper;
         this.sessionMapper = sessionMapper;
         this.studentRosterMapper = studentRosterMapper;
         this.jwtUtil = jwtUtil;
         this.adminUserMapper = adminUserMapper;
         this.bCryptPasswordEncoder = bCryptPasswordEncoder;
+        this.classesMapper = classesMapper;
     }
 
     @Override
@@ -59,13 +63,14 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     @Transactional
-    public AuthData bindAndLogin(String openid, String studentNo, String name, String college, HttpServletRequest request) {
+    public AuthData bindAndLogin(String openid, String studentNo, String name, String college, Long classId, HttpServletRequest request) {
         if (isBlank(studentNo) || isBlank(name) || isBlank(college)) {
             throw BizException.missingParams();
         }
 
         Student byNo = studentMapper.findByStudentNo(studentNo.trim());
         StudentRoster studentRoster = studentRosterMapper.findMatch(studentNo.trim(), name.trim(), college.trim());
+        //
         if (byNo != null) {  // student表中查找到了学号，之前登陆过，已经记录在student表中
             // 学号已绑定且不是自己 -> 不允许解绑/换绑
             if (byNo.getWechatOpenid() != null && !byNo.getWechatOpenid().equals(openid)) {
@@ -77,6 +82,8 @@ public class AuthServiceImpl implements AuthService {
         if(studentRoster == null) {  // 先查找白名单，白名单中存在则可以登录，不存在直接返回“NOT_ALLOWED”
             throw BizException.notAllowed();
         }
+        // 如果班级不符合，也不让
+        if (!studentRoster.getClassId().equals(classId)) throw BizException.notAllowed();
 
         // 新建 student（你可以改成从 roster 导入 name/college）
         Student s = new Student();
@@ -86,6 +93,7 @@ public class AuthServiceImpl implements AuthService {
         s.setCollege(studentRoster.getCollege().trim());
         s.setWechatOpenid(openid);
         s.setTheta(BigDecimal.valueOf(5.0));
+        s.setClassId(classId);
         studentMapper.insert(s);
 
         return issueSession(s.getId(), request);

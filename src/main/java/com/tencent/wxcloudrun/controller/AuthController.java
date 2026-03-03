@@ -40,7 +40,6 @@ public class AuthController {
     @PostMapping("/login")
     public ApiResponse login(HttpServletRequest request) {
         String openid = request.getHeader("X-WX-OPENID");
-        System.out.println(openid);
         if (openid == null || openid.isBlank()) {
             return ApiResponse.error("Missing X-WX-OPENID. 请确认使用 wx.cloud.callContainer 调用云托管");
         }
@@ -59,6 +58,7 @@ public class AuthController {
                 req.getStudentNo(),
                 req.getName(),
                 req.getCollege(),
+                req.getClassId(),
                 request
         ));
     }

@@ -15,4 +15,5 @@ public class Student {
     public String wechatOpenid;
     public BigDecimal theta;
     public OffsetDateTime boundAt;
+    public Long classId;
 }

@@ -8,7 +8,7 @@ import org.apache.ibatis.annotations.Select;
 @Mapper
 public interface StudentRosterMapper {
     @Select("""
-                SELECT id, student_no AS studentNo, name, college, is_active AS isActive
+                SELECT id, student_no AS studentNo, name, college, is_active AS isActive, class_id AS classId
                 FROM student_roster
                 WHERE student_no = #{studentNo} AND name = #{name} AND college = #{college} AND is_active = 1
                 LIMIT 1

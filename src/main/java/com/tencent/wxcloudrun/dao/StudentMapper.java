@@ -9,20 +9,20 @@ import java.util.List;
 @Mapper
 public interface StudentMapper {
     @Select("""
-            SELECT id, roster_id, student_no AS studentNo, name, college, wechat_openid AS wechatOpenid, theta, bound_at AS boundAt
+            SELECT id, roster_id, student_no AS studentNo, name, college, wechat_openid AS wechatOpenid, theta, bound_at AS boundAt, class_id AS classId
             FROM students WHERE id = #{studentId}
             """
     )
     Student findById(@Param("studentId") String studentId);
 
     @Select("""
-              SELECT id, student_no AS studentNo, name, college, wechat_openid AS wechatOpenid, theta
+              SELECT id, student_no AS studentNo, name, college, wechat_openid AS wechatOpenid, theta, class_id AS classId
               FROM students WHERE wechat_openid = #{openid} LIMIT 1
             """)
     Student findByOpenid(@Param("openid") String openid);
 
     @Select("""
-              SELECT id, student_no AS studentNo, name, college, wechat_openid AS wechatOpenid, theta
+              SELECT id, student_no AS studentNo, name, college, wechat_openid AS wechatOpenid, theta, class_id AS classId
               FROM students WHERE student_no = #{studentNo} LIMIT 1
             """)
     Student findByStudentNo(@Param("studentNo") String studentNo);
@@ -36,6 +36,7 @@ public interface StudentMapper {
                        s.wechat_openid  AS wechatOpenid,
                        s.theta,
                        s.bound_at       AS boundAt,
+                       s.class_id AS classId,
                        COALESCE(st.practice_count, 0) AS practiceCount
                 FROM students s
                 LEFT JOIN student_ability_state st ON st.student_id = s.id
@@ -51,8 +52,8 @@ public interface StudentMapper {
     long countLeaderboard();
 
     @Insert("""
-              INSERT INTO students(roster_id, student_no, name, college, wechat_openid, theta, bound_at)
-              VALUES(#{rosterId}, #{studentNo}, #{name}, #{college}, #{wechatOpenid}, #{theta}, NOW())
+              INSERT INTO students(roster_id, student_no, name, college, wechat_openid, theta, bound_at, class_id)
+              VALUES(#{rosterId}, #{studentNo}, #{name}, #{college}, #{wechatOpenid}, #{theta}, NOW(), #{classId})
             """)
     @Options(useGeneratedKeys = true, keyProperty = "id")
     int insert(Student s);

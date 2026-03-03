@@ -7,7 +7,7 @@ import javax.servlet.http.HttpServletRequest;
 public interface AuthService {
     AuthData loginByOpenid(String openid, HttpServletRequest request);
 
-    AuthData bindAndLogin(String openid, String studentNo, String name, String college, HttpServletRequest request);
+    AuthData bindAndLogin(String openid, String studentNo, String name, String college, Long classId, HttpServletRequest request);
 
     AuthData adminLogin(String username, String password);
 

@@ -9,4 +9,5 @@ public class StudentRoster {
     public String name;
     public String college;
     public boolean isActive;
+    public Long classId;
 }
