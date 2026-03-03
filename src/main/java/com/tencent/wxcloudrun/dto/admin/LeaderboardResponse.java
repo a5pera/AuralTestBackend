@@ -17,6 +17,8 @@ public class LeaderboardResponse {
         // private String studentNoMasked;   // 学号
         private String name;              // 可选：如果你想保护隐私也可以脱敏
         private String college;
+        private Long classId;
+        private String className;
         private BigDecimal theta;
         private Integer practiceCount;    // 来自 student_ability_state
     }

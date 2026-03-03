@@ -1,9 +1,11 @@
 package com.tencent.wxcloudrun.service.impl;
 
+import com.tencent.wxcloudrun.dao.ClassesMapper;
 import com.tencent.wxcloudrun.dao.StudentAbilityStateMapper;
 import com.tencent.wxcloudrun.dao.StudentMapper;
 import com.tencent.wxcloudrun.dto.admin.LeaderboardResponse;
 import com.tencent.wxcloudrun.model.auth.Student;
+import com.tencent.wxcloudrun.model.user.Classes;
 import com.tencent.wxcloudrun.model.user.StudentAbilityState;
 import com.tencent.wxcloudrun.service.StatisticsService;
 import org.springframework.stereotype.Service;
@@ -15,11 +17,14 @@ import java.util.List;
 public class StatisticsServiceImpl implements StatisticsService {
     private final StudentMapper studentMapper;
     private final StudentAbilityStateMapper studentAbilityStateMapper;
+    private final ClassesMapper classesMapper;
 
     public StatisticsServiceImpl(StudentMapper studentMapper,
-                                 StudentAbilityStateMapper studentAbilityStateMapper) {
+                                 StudentAbilityStateMapper studentAbilityStateMapper,
+                                 ClassesMapper classesMapper) {
         this.studentMapper = studentMapper;
         this.studentAbilityStateMapper = studentAbilityStateMapper;
+        this.classesMapper = classesMapper;
     }
 
     public LeaderboardResponse getLeaderboard(Integer limit, Integer offset) {
@@ -38,6 +43,10 @@ public class StatisticsServiceImpl implements StatisticsService {
             dto.setName(s.getName());
             dto.setCollege(s.getCollege());
             dto.setTheta(s.getTheta());
+            Long classId = s.getClassId();
+            dto.setClassId(classId);
+            Classes clazz = classesMapper.findById(classId);
+            dto.setClassName(clazz.getName());
             StudentAbilityState sas = studentAbilityStateMapper.findByStudentId(s.getId());
             dto.setPracticeCount(sas.getPracticeCount());
             // dto.setPracticeCount(s.getPracticeCount() == null ? 0 : s.getPracticeCount());
