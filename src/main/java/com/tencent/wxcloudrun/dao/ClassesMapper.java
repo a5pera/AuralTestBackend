@@ -42,4 +42,11 @@ public interface ClassesMapper {
             WHERE id=#{id}
             """)
     int deActivate(@Param("id") Long id);
+
+    @Update("""
+            UPDATE classes
+            SET name=#{name}
+            WHERE id=#{id}
+            """)
+    int updateName(@Param("id") Long id, @Param("name") String name);
 }

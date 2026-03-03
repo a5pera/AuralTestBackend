@@ -1,10 +1,12 @@
 package com.tencent.wxcloudrun.controller;
 
 import com.tencent.wxcloudrun.config.ApiResponse;
+import com.tencent.wxcloudrun.dto.quest.UpdateClassNameDTO;
 import com.tencent.wxcloudrun.dto.quest.UploadMaterialRequest;
 import com.tencent.wxcloudrun.service.ClassesService;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.Map;
 
 @RestController
@@ -29,6 +31,16 @@ public class ClassesController {
     public ApiResponse listClasses() {
         try {
             return ApiResponse.ok(classesService.listActiveClasses());
+        } catch (Exception e) {
+            return ApiResponse.error(e.getMessage());
+        }
+    }
+
+    @PostMapping("/update/{id}")
+    public ApiResponse updateClassName(@PathVariable("id") Long id, @RequestBody UpdateClassNameDTO dto) {
+        try {
+            int out = classesService.updateClassName(id, dto.getNewClassName());
+            return ApiResponse.ok(out);
         } catch (Exception e) {
             return ApiResponse.error(e.getMessage());
         }

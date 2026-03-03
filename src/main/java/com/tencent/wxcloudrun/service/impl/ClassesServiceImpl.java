@@ -43,4 +43,10 @@ public class ClassesServiceImpl implements ClassesService {
         if (id == null) throw new IllegalArgumentException("MISSING_PARAM");
         return classesMapper.deActivate(id);
     }
+
+    @Override
+    public int updateClassName(Long id, String name) {
+        if(id == null || name == null) throw new IllegalArgumentException("MISSING_PARAM");
+        return classesMapper.updateName(id, name);
+    }
 }

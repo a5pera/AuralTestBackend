@@ -14,4 +14,6 @@ public interface ClassesService {
     int activate(Long id);
 
     int deActive(Long id);
+
+    int updateClassName(Long id, String name);
 }
