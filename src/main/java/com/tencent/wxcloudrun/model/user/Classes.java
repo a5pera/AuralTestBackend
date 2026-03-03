@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 public class Classes {
     private Long id;
     private String name;
-    private boolean isActive;
+    private Boolean isActive;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

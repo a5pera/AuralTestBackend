@@ -10,20 +10,20 @@ import java.util.List;
 @Mapper
 public interface ClassesMapper {
     @Select("""
-            SELECT id, name, is_active, created_at, updated_at 
+            SELECT id, name, is_active AS isActive, created_at AS createdAt, updated_at AS updatedAt
             FROM classes
             """)
     List<Classes> listAll();
 
     @Select("""
-            SELECT id, name, is_active, created_at, updated_at
+            SELECT id, name, is_active AS isActive, created_at AS createdAt, updated_at AS updatedAt
             FROM classes
             WHERE is_active=1
             """)
     List<Classes> listActive();
 
     @Select("""
-            SELECT id, name, is_active, created_at, updated_at
+            SELECT id, name, is_active AS isActive, created_at AS createdAt, updated_at AS updatedAt
             FROM classes
             WHERE id=#{id}
             """)
