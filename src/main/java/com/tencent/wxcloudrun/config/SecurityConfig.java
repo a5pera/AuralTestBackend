@@ -31,7 +31,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers(
                         "/api/auth/login", "/api/auth/bind", "/api/ping",
                         "/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**",
-                        "/api/auth/adminLogin", "/api/admin/create"   // ✅ 确保与你 controller 一致
+                        "/api/auth/adminLogin", "/api/admin/create",
+                        "/api/class/list"// ✅ 确保与你 controller 一致
                 ).permitAll()
 
                 // 2) 管理员接口：必须 ADMIN（一定要放在 anyRequest 前）

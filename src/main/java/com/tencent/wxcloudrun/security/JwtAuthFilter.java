@@ -38,7 +38,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         // 放行：登录、绑定、健康检查（按你项目实际路径调整）
         return "/api/auth/login".equals(path)
                 || "/api/auth/bind".equals(path)
-                || "/api/ping".equals(path);
+                || "/api/ping".equals(path)
+                || "/api/class/list".equals(path);
     }
 
     @Override
