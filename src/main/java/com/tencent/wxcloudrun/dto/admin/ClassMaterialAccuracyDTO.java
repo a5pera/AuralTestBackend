@@ -1,7 +1,9 @@
 package com.tencent.wxcloudrun.dto.admin;
 
-import java.math.BigDecimal;
+import lombok.Data;
 
+import java.math.BigDecimal;
+@Data
 public class ClassMaterialAccuracyDTO {
     private Long materialId;
     private String materialTitle;
