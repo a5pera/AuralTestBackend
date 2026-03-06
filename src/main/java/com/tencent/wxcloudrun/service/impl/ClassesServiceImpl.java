@@ -2,6 +2,7 @@ package com.tencent.wxcloudrun.service.impl;
 
 import com.tencent.wxcloudrun.dao.ClassesMapper;
 import com.tencent.wxcloudrun.dao.StudentRosterMapper;
+import com.tencent.wxcloudrun.dto.admin.ClassMaterialAccuracyDTO;
 import com.tencent.wxcloudrun.dto.admin.ClassStudentCountDTO;
 import com.tencent.wxcloudrun.dto.admin.ClassStudentDTO;
 import com.tencent.wxcloudrun.model.auth.StudentRoster;
@@ -69,5 +70,11 @@ public class ClassesServiceImpl implements ClassesService {
     public ClassStudentCountDTO countStudents(Long classId) {
         if(classId == null) throw new IllegalArgumentException("CLASS_ID_MISSING");
         return studentRosterMapper.countClassStudents(classId);
+    }
+
+    @Override
+    public List<ClassMaterialAccuracyDTO> getMaterialAccuracy(Long classId) {
+        if(classId == null) throw new IllegalArgumentException("CLASS_ID_MISSING");
+        return classesMapper.statMaterialAccuracyByClassLatest(classId);
     }
 }

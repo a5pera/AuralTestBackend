@@ -1,5 +1,6 @@
 package com.tencent.wxcloudrun.service;
 
+import com.tencent.wxcloudrun.dto.admin.ClassMaterialAccuracyDTO;
 import com.tencent.wxcloudrun.dto.admin.ClassStudentCountDTO;
 import com.tencent.wxcloudrun.dto.admin.ClassStudentDTO;
 import com.tencent.wxcloudrun.model.user.Classes;
@@ -22,4 +23,6 @@ public interface ClassesService {
     List<ClassStudentDTO> listStudents(Long classId, Integer limit, Integer offset);
 
     ClassStudentCountDTO countStudents(Long classId);
+
+    List<ClassMaterialAccuracyDTO> getMaterialAccuracy(Long classId);
 }

@@ -1,6 +1,7 @@
 package com.tencent.wxcloudrun.controller;
 
 import com.tencent.wxcloudrun.config.ApiResponse;
+import com.tencent.wxcloudrun.dto.admin.ClassMaterialAccuracyDTO;
 import com.tencent.wxcloudrun.dto.admin.ClassStudentCountDTO;
 import com.tencent.wxcloudrun.dto.admin.ClassStudentDTO;
 import com.tencent.wxcloudrun.dto.quest.UpdateClassNameDTO;
@@ -79,7 +80,21 @@ public class ClassesController {
 
     @GetMapping("/{classId}/student-count")
     public ApiResponse countStudents(@PathVariable Long classId) {
-        ClassStudentCountDTO dto = classesService.countStudents(classId);
-        return ApiResponse.ok(dto);
+        try {
+            ClassStudentCountDTO dto = classesService.countStudents(classId);
+            return ApiResponse.ok(dto);
+        } catch (Exception e) {
+            return ApiResponse.error(e.getMessage());
+        }
+    }
+
+    @GetMapping("/{classId}/material-accuracy")
+    public ApiResponse getClassMaterialAccuracy(@PathVariable("classId") Long classId) {
+        try {
+            List<ClassMaterialAccuracyDTO> out = classesService.getMaterialAccuracy(classId);
+            return ApiResponse.ok(out);
+        } catch (Exception e) {
+            return ApiResponse.error(e.getMessage());
+        }
     }
 }
