@@ -1,5 +1,7 @@
 package com.tencent.wxcloudrun.service;
 
+import com.tencent.wxcloudrun.dto.admin.ClassStudentCountDTO;
+import com.tencent.wxcloudrun.dto.admin.ClassStudentDTO;
 import com.tencent.wxcloudrun.model.user.Classes;
 
 import java.util.List;
@@ -16,4 +18,8 @@ public interface ClassesService {
     int deActive(Long id);
 
     int updateClassName(Long id, String name);
+
+    List<ClassStudentDTO> listStudents(Long classId, Integer limit, Integer offset);
+
+    ClassStudentCountDTO countStudents(Long classId);
 }

@@ -1,12 +1,15 @@
 package com.tencent.wxcloudrun.controller;
 
 import com.tencent.wxcloudrun.config.ApiResponse;
+import com.tencent.wxcloudrun.dto.admin.ClassStudentCountDTO;
+import com.tencent.wxcloudrun.dto.admin.ClassStudentDTO;
 import com.tencent.wxcloudrun.dto.quest.UpdateClassNameDTO;
 import com.tencent.wxcloudrun.dto.quest.UploadMaterialRequest;
 import com.tencent.wxcloudrun.service.ClassesService;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -64,5 +67,19 @@ public class ClassesController {
         } catch (Exception e) {
             return ApiResponse.error(e.getMessage());
         }
+    }
+
+    @GetMapping("/{classId}/students")
+    public ApiResponse listStudents(@PathVariable Long classId,
+                                    @RequestParam(required = false) Integer limit,
+                                    @RequestParam(required = false) Integer offset) {
+        List<ClassStudentDTO> list = classesService.listStudents(classId, limit, offset);
+        return ApiResponse.ok(list);
+    }
+
+    @GetMapping("/{classId}/student-count")
+    public ApiResponse countStudents(@PathVariable Long classId) {
+        ClassStudentCountDTO dto = classesService.countStudents(classId);
+        return ApiResponse.ok(dto);
     }
 }
