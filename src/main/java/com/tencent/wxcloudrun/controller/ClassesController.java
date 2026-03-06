@@ -2,11 +2,13 @@ package com.tencent.wxcloudrun.controller;
 
 import com.tencent.wxcloudrun.config.ApiResponse;
 import com.tencent.wxcloudrun.dto.admin.ClassMaterialAccuracyDTO;
+import com.tencent.wxcloudrun.dto.admin.ClassMaterialQuestionAccuracyDTO;
 import com.tencent.wxcloudrun.dto.admin.ClassStudentCountDTO;
 import com.tencent.wxcloudrun.dto.admin.ClassStudentDTO;
 import com.tencent.wxcloudrun.dto.quest.UpdateClassNameDTO;
 import com.tencent.wxcloudrun.dto.quest.UploadMaterialRequest;
 import com.tencent.wxcloudrun.service.ClassesService;
+import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
@@ -97,4 +99,16 @@ public class ClassesController {
             return ApiResponse.error(e.getMessage());
         }
     }
+
+    @GetMapping("/{classId}/material/{materialId}/question-accuracy")
+    public ApiResponse getClassMaterialQuestionAccuracy(@PathVariable("classId") Long classId,
+                                                        @PathVariable("materialId") Long materialId) {
+        try {
+            List<ClassMaterialQuestionAccuracyDTO> out = classesService.getMaterialQuestionAccuracy(classId, materialId);
+            return ApiResponse.ok(out);
+        } catch (Exception e) {
+            return ApiResponse.error(e.getMessage());
+        }
+    }
+
 }

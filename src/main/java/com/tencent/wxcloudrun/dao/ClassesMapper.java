@@ -1,6 +1,7 @@
 package com.tencent.wxcloudrun.dao;
 
 import com.tencent.wxcloudrun.dto.admin.ClassMaterialAccuracyDTO;
+import com.tencent.wxcloudrun.dto.admin.ClassMaterialQuestionAccuracyDTO;
 import com.tencent.wxcloudrun.dto.admin.ClassOneQuestionAccuracyDTO;
 import com.tencent.wxcloudrun.model.user.Classes;
 import org.apache.ibatis.annotations.Mapper;
@@ -112,4 +113,37 @@ public interface ClassesMapper {
         ORDER BY m.level ASC, m.id ASC
     """)
     List<ClassMaterialAccuracyDTO> statMaterialAccuracyByClassLatest(@Param("classId") Long classId);
+
+    @Select("""
+        SELECT
+          #{materialId} AS materialId,
+          q.id          AS questionId,
+          q.q_order     AS qOrder,
+          SUM(CASE WHEN aa.is_correct = 1 THEN 1 ELSE 0 END) AS correctCnt,
+          COUNT(1) AS studentCnt,
+          CAST(
+            SUM(CASE WHEN aa.is_correct = 1 THEN 1 ELSE 0 END) / NULLIF(COUNT(1), 0)
+            AS DECIMAL(10,4)
+          ) AS accuracy
+        FROM (
+          SELECT
+            a2.student_id,
+            MAX(a2.id) AS latest_attempt_id
+          FROM attempts a2
+          JOIN students s2       ON s2.id = a2.student_id
+          JOIN student_roster r2 ON r2.id = s2.roster_id
+          WHERE r2.class_id = #{classId}
+            AND a2.material_id = #{materialId}
+          GROUP BY a2.student_id
+        ) last1
+        JOIN attempt_answers aa ON aa.attempt_id = last1.latest_attempt_id
+        JOIN questions q        ON q.id = aa.question_id
+        WHERE q.material_id = #{materialId}
+        GROUP BY q.id, q.q_order
+        ORDER BY q.q_order ASC, q.id ASC
+    """)
+    List<ClassMaterialQuestionAccuracyDTO> statQuestionAccuracyByClassLatestAttempt(
+            @Param("classId") Long classId,
+            @Param("materialId") Long materialId
+    );
 }
