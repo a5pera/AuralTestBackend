@@ -2,14 +2,12 @@ package com.tencent.wxcloudrun.controller;
 
 import com.tencent.wxcloudrun.config.ApiResponse;
 import com.tencent.wxcloudrun.dto.admin.LeaderboardResponse;
+import com.tencent.wxcloudrun.dto.admin.StudentPracticeReportDTO;
 import com.tencent.wxcloudrun.dto.auth.AdminLoginRequest;
 import com.tencent.wxcloudrun.dto.practice.PracticeAttemptDTO;
 import com.tencent.wxcloudrun.dto.practice.PracticeAttemptDetailedDTO;
 import com.tencent.wxcloudrun.model.user.AttemptAnswer;
-import com.tencent.wxcloudrun.service.AuthService;
-import com.tencent.wxcloudrun.service.MaterialService;
-import com.tencent.wxcloudrun.service.PracticeService;
-import com.tencent.wxcloudrun.service.StatisticsService;
+import com.tencent.wxcloudrun.service.*;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,14 +19,17 @@ public class AdminController {
     private final MaterialService materialService;
     private final StatisticsService statisticsService;
     private final PracticeService practiceService;
+    private final AdminPracticeService adminPracticeService;
 
     public AdminController(AuthService authService, MaterialService materialService,
                            StatisticsService statisticsService,
-                           PracticeService practiceService) {
+                           PracticeService practiceService,
+                           AdminPracticeService adminPracticeService) {
         this.authService = authService;
         this.materialService = materialService;
         this.statisticsService = statisticsService;
         this.practiceService = practiceService;
+        this.adminPracticeService = adminPracticeService;
     }
 
     @PostMapping("/create")
@@ -61,6 +62,16 @@ public class AdminController {
     public ApiResponse getStudentPracticedDetailed(@PathVariable("attemptId") Long attemptId) {
         try {
             List<PracticeAttemptDetailedDTO> out = practiceService.getDetailByAttemptId(attemptId);
+            return ApiResponse.ok(out);
+        } catch (Exception e) {
+            return ApiResponse.error(e.getMessage());
+        }
+    }
+
+    @GetMapping("/get-student-practice-statistics/{id}")
+    public ApiResponse getStudentPracticedStatistics(@PathVariable("id") Long studentId) {
+        try {
+            StudentPracticeReportDTO out = adminPracticeService.getStudentPracticeReport(studentId);
             return ApiResponse.ok(out);
         } catch (Exception e) {
             return ApiResponse.error(e.getMessage());
