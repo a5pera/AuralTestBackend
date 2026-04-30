@@ -48,7 +48,7 @@ public class StatisticsServiceImpl implements StatisticsService {
             Classes clazz = classesMapper.findById(classId);
             dto.setClassName(clazz.getName());
             StudentAbilityState sas = studentAbilityStateMapper.findByStudentId(s.getId());
-            dto.setPracticeCount(sas.getPracticeCount());
+            dto.setPracticeCount(sas != null ? sas.getPracticeCount() : 0);
             // dto.setPracticeCount(s.getPracticeCount() == null ? 0 : s.getPracticeCount());
             items.add(dto);
         }
