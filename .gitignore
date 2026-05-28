@@ -1,2 +1,5 @@
 /.idea
 /src/main/resources/application.yml
+/*.docx
+/*.html
+/面试准备-AuralTestBackend.md
