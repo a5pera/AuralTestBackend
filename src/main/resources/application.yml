@@ -5,17 +5,13 @@ server:
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://${MYSQL_ADDRESS}/${MYSQL_DATABASE:arual_test}
+    url: jdbc:mysql://${MYSQL_ADDRESS}/${MYSQL_DATABASE:springboot_demo}
     username: ${MYSQL_USERNAME}
     password: ${MYSQL_PASSWORD}
   mvc:
     view:
       suffix: .html
       prefix: /
-
-jwt:
-  secret: "AURAL_TEST_BACKEND_SECRET_CODE_32_CHARS_MIN_12345"
-  ttlSeconds: 604800   # 7天
 
 mybatis:
   mapper-locations: classpath*:mapper/*Mapper.xml
